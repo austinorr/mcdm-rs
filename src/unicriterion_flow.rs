@@ -1,10 +1,11 @@
+use crate::pref_functions::get_pref_function;
 use crate::types::*;
 
 pub fn unicriterion_flow(
     array: &[Fl],
     plus: &mut [Fl],
     minus: &mut [Fl],
-    func: FPref,
+    fname: &str,
     q: &Fl,
     p: &Fl,
 ) {
@@ -13,6 +14,8 @@ pub fn unicriterion_flow(
     let mut ndiff: Fl;
     let mut plus_sum: Fl;
     let mut minus_sum: Fl;
+
+    let func = get_pref_function(&fname);
 
     for (i, v1) in array.iter().enumerate() {
         plus_sum = 0.0;
@@ -31,7 +34,6 @@ pub fn unicriterion_flow(
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::pref_functions as pf;
 
     macro_rules! parametrize_unicriterion_flow {
         ($($name:ident: $value:expr,)*) => {
@@ -44,7 +46,7 @@ mod test {
 
                 let mut plus: Vec<Fl> = vec![0.0; array.len()];
                 let mut minus: Vec<Fl> = vec![0.0; array.len()];
-                unicriterion_flow(&array, &mut plus, &mut minus, func, &q, &p);
+                unicriterion_flow(&array, &mut plus, &mut minus, &func, &q, &p);
                 assert_eq!(expected, (plus, minus));
             }
         )*
@@ -52,8 +54,8 @@ mod test {
     }
 
     parametrize_unicriterion_flow! {
-        t1: ((vec![0.8, 0.2, 0.5], pf::usual, 0.0, 0.0), (vec![1., 0., 0.5], vec![0., 1., 0.5])),
-        t2: ((vec![1.,1.,1.], pf::usual, 0.0, 0.0), (vec![0.,0.,0.],vec![0.,0.,0.])),
-        t3: ((vec![0.,0.,0.], pf::usual, 0.0, 0.0), (vec![0.,0.,0.], vec![0.,0.,0.])),
+        t1: ((vec![0.8, 0.2, 0.5], "usual", 0.0, 0.0), (vec![1., 0., 0.5], vec![0., 1., 0.5])),
+        t2: ((vec![1.,1.,1.], "usual", 0.0, 0.0), (vec![0.,0.,0.],vec![0.,0.,0.])),
+        t3: ((vec![0.,0.,0.], "usual", 0.0, 0.0), (vec![0.,0.,0.], vec![0.,0.,0.])),
     }
 }
