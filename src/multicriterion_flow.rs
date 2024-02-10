@@ -1,18 +1,14 @@
-use crate::pref_functions::get_pref_functions;
 use crate::types::*;
 use crate::unicriterion_flow::unicriterion_flow;
 
 pub fn multicriterion_flow(
     matrix_t: &[Arr],
-    weights: &[Fl],
-    criteria_type: &[i8],
-    func: &[&str],
+    pref_functions: &[String],
     q: &[Fl],
     p: &[Fl],
 ) -> (Mat, Mat) {
-    // assume criteria_type, func, q, p are of same length as matrix_t
+    // assume func, q, p are of same length as matrix_t
 
-    let map = get_pref_functions();
     let m: usize = matrix_t.len();
     let n: usize = matrix_t[0].len();
 
@@ -21,24 +17,12 @@ pub fn multicriterion_flow(
 
     // TODO: parallelize this outer loop.
     for (i, col) in matrix_t.iter().enumerate() {
-        if weights[i] == 0. {
-            continue;
-        }
-        let mut new_col = col.clone();
-        new_col
-            .iter_mut()
-            .for_each(|x| *x *= criteria_type[i] as Fl);
-
-        let func = map
-            .get(func[i])
-            .unwrap_or_else(|| panic!("function not found: {:?}", func[i]));
-
         // modify preference matrices in place
         unicriterion_flow(
-            &new_col,
+            &col,
             &mut pref_matrix_plus_t[i],
             &mut pref_matrix_minus_t[i],
-            *func,
+            &pref_functions[i],
             &q[i],
             &p[i],
         );
@@ -50,6 +34,7 @@ pub fn multicriterion_flow(
 #[cfg(test)]
 mod test {
     use super::*;
+    use is_close::all_close;
 
     macro_rules! parametrize_multicriterion_flow {
         ($($name:ident: $value:expr,)*) => {
@@ -57,9 +42,16 @@ mod test {
             #[test]
             fn $name() {
                 let (input, expected) = $value;
-                let (array, weights, criteria_type, func_names, q, p) = input;
-                let (plus, minus) = multicriterion_flow(&array, &weights, &criteria_type, &func_names, &q, &p);
-                assert_eq!(expected, (plus, minus));
+                let (array, func_names, q, p) = input;
+                let (exp_plus, exp_minus) = expected;
+                let (plus, minus) = multicriterion_flow(&array, &func_names, &q, &p);
+
+                for (i, exp) in exp_plus.iter().enumerate() {
+                    assert!(all_close!(exp.clone(), plus[i].clone(), rel_tol=1e-6));
+                }
+                for (i, exp) in exp_minus.iter().enumerate() {
+                    assert!(all_close!(exp.clone(), minus[i].clone(), rel_tol=1e-6));
+                }
             }
         )*
         }
@@ -70,19 +62,17 @@ mod test {
             // input
             (
                 vec![vec![0.8, 0.2, 0.5], vec![0.8, 0.2, 0.5]], // array
-                vec![1., 1.], // weights
-                vec![-1, 1], // criteria type
-                vec!["usual", "usual"], // func
+                vec!["usual".to_string(), "usual".to_string()], // func
                 vec![0., 0.], // q
                 vec![0., 0.], // p
             ),
             // expected
             (vec![
-                vec![0. , 1. , 0.5],
+                vec![1. , 0. , 0.5],
                 vec![1. , 0. , 0.5]
                 ],
             vec![
-                vec![1. , 0. , 0.5],
+                vec![0. , 1. , 0.5],
                 vec![0. , 1. , 0.5]
                 ]
             )
@@ -91,9 +81,7 @@ mod test {
             // input
             (
                 vec![vec![1.,1.,1.], vec![1.,1.,1.]], // array
-                vec![1., 1.], // weights
-                vec![-1, 1], // criteria type
-                vec!["usual", "usual"], // func
+                vec!["usual".to_string(), "usual".to_string()], // func
                 vec![0., 0.], // q
                 vec![0., 0.], // p
             ),
@@ -111,54 +99,40 @@ mod test {
         t3: (
             // input
             (
-                vec![vec![0.8, 0.2, 0.5], vec![0.8, 0.2, 0.5]], // array
-                vec![1., 0.], // weights
-                vec![-1, 1], // criteria type
-                vec!["usual", "usual"], // func
+                vec![vec![0.8, 0.2, 0.5], vec![0.5, 0.8, 0.2]], // array
+                vec!["usual".to_string(), "usual".to_string()], // func
                 vec![0., 0.], // q
                 vec![0., 0.], // p
             ),
             // expected
             (vec![
-                vec![0. , 1. , 0.5],
-                vec![0.,0.,0.]
+                vec![1. , 0. , 0.5],
+                vec![0.5, 1. , 0. ]
                 ],
             vec![
-                vec![1. , 0. , 0.5],
-                vec![0.,0.,0.]
+                vec![0. , 1. , 0.5],
+                vec![0.5, 0. , 1. ]
                 ]
             )
         ),
-
-        /*
-        TODO: this passes if we implement all_close!
-        thread 'multicriterion_flow::test::t4' panicked at src/multicriterion_flow.rs:66:5:
-        assertion `left == right` failed
-          left: ([[0.0, 1.0, 0.5], [0.35714287, 0.0, 0.07142857]], [[1.0, 0.0, 0.5], [0.0, 0.35714287, 0.07142857]])
-         right: ([[0.0, 1.0, 0.5], [0.35714293, 0.0, 0.07142858]], [[1.0, 0.0, 0.5], [0.0, 0.35714293, 0.07142858]])
-
-        */
-
-        // t4: (
-        //     // input
-        //     (
-        //         vec![vec![0.8, 0.2, 0.5], vec![0.8, 0.2, 0.5]], // array
-        //         vec![1., 1.], // weights
-        //         vec![-1, 1], // criteria type
-        //         vec!["level", "vshape2"], // func
-        //         vec![0.01, 0.2], // q
-        //         vec![0.1, 0.9], // p
-        //     ),
-        //     // expected
-        //     (vec![
-        //         vec![0.        , 1.        , 0.5       ],
-        //         vec![0.35714287, 0.        , 0.07142857]
-        //         ],
-        //     vec![
-        //         vec![1.        , 0.        , 0.5       ],
-        //         vec![0.        , 0.35714287, 0.07142857]
-        //         ]
-        //     )
-        // ),
+        t4: (
+            // input
+            (
+                vec![vec![0.8, 0.2, 0.5], vec![0.8, 0.2, 0.5]], // array
+                vec!["usual".to_string(), "vshape2".to_string()], // func
+                vec![0.01, 0.2], // q
+                vec![0.1, 0.9], // p
+            ),
+            // expected
+            (vec![
+                vec![1.        , 0.        , 0.5       ],
+                vec![0.35714287, 0.        , 0.07142857]
+                ],
+            vec![
+                vec![0.        , 1.        , 0.5       ],
+                vec![0.        , 0.35714287, 0.07142857]
+                ]
+            )
+        ),
     }
 }
