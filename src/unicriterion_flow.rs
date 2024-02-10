@@ -15,7 +15,7 @@ pub fn unicriterion_flow(
     let mut plus_sum: Fl;
     let mut minus_sum: Fl;
 
-    let func = get_pref_function(&fname);
+    let func = get_pref_function(fname);
 
     for (i, v1) in array.iter().enumerate() {
         plus_sum = 0.0;

@@ -1,79 +1,47 @@
-// use std::collections::HashMap;
-
+use prom::Prom;
 use promrs::*;
+use rand::{distributions::Uniform, Rng};
+use std::time::Instant;
 
-// fn times2(value: i32) -> i32 {
-//     2 * value
-// }
+fn generate_prom(n: usize, m: usize) -> Prom {
+    let mut rng = rand::thread_rng();
+    let range: Uniform<types::Fl> = Uniform::new(0.0, 20.0);
 
-// fn fun_test(value: i32, f: fn(i32) -> i32) -> i32 {
-//     println!("{}", f(value));
-//     value
-// }
+    let mut matrix_t: types::Mat = Vec::new();
+    for _ in 0..m {
+        matrix_t.push((0..n).map(|_| rng.sample(&range)).collect())
+    }
 
-fn test_uniflow() {
-    use pref_functions::usual;
-    use types::*;
-    use unicriterion_flow::unicriterion_flow;
+    let len: usize = matrix_t.len();
 
-    let array: Vec<Fl> = vec![0.8, 0.2, 0.5];
-    let mut plus: Vec<Fl> = vec![0.0, 0.0, 0.0];
-    let mut minus: Vec<Fl> = vec![0.0, 0.0, 0.0];
-    let func: FPref = usual;
-    let q: Fl = 0.0;
-    let p: Fl = 0.0;
-
-    println!("uniflow plus before: {:#?}", plus);
-
-    unicriterion_flow(&array, &mut plus, &mut minus, func, &q, &p);
-
-    println!("uniflow plus after: {:#?}", plus);
+    prom::Prom::new(
+        &matrix_t,
+        vec![1.; len],
+        vec![1.; len],
+        vec!["usual".to_string(); len],
+        vec![0.; len],
+        vec![0.; len],
+    )
+    .expect("unable to build with Prom::new")
 }
 
-fn test_mc_flow() {
-    use matrix::transpose;
-    use multicriterion_flow::multicriterion_flow;
+fn bench() {
+    let mut p = generate_prom(6000, 1);
 
-    let arr = vec![vec![0.8, 0.2, 0.5], vec![0.8, 0.2, 0.5]];
-    let weights = vec![1., 1.];
-    let criteria_type = vec![-1, 1];
-    let func_names = vec!["usual", "usual"];
-    let q = vec![0., 0.];
-    let p = vec![0., 0.];
+    let mut timings: Vec<f64> = Vec::new();
+    for _ in 0..25 {
+        let now: Instant = Instant::now();
+        _ = p.compute_multicriterion_flow();
+        timings.push(now.elapsed().as_secs_f64());
+    }
 
-    let (plus, minus) = multicriterion_flow(&arr, &weights, &criteria_type, &func_names, &q, &p);
+    let s: f64 = timings.iter().sum::<f64>() * 1000.0;
+    let avg: f64 = s / (timings.len() as f64);
 
-    println!("multi: {:#?} {:#?}", transpose(plus), transpose(minus))
+    println!("avg time (ms):   {:.2}", avg);
+    println!("total time (s):  {:.2}", s / 1000.);
 }
 
 fn main() {
-    let func_name: &str = "usual";
-
-    let map = pref_functions::get_pref_functions();
-    let func = map
-        .get(func_name)
-        .unwrap_or_else(|| panic!("function not found: {func_name}"));
-
-    assert_eq!(func(&0.0, &0.0, &0.0), 0.0);
-
-    test_uniflow();
-    test_mc_flow();
+    bench()
 }
-
-// #[test]
-// fn test_usual() {
-//     let funcs: std::collections::HashMap<String, fn(f32, f32, f32) -> f32> =
-//         pref_functions::get_pref_functions();
-// }
-
-// #[test]
-// fn test_func_lookup() {
-//     let func_name: &str = "usual";
-
-//     let map = pref_functions::get_pref_functions();
-//     let func = map
-//         .get(func_name)
-//         .expect(&format!("{} not found", func_name));
-
-//     assert_eq!(func(&0.0, &0.0, &0.0), 0.0);
-// }
