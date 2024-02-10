@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use crate::types::*;
 
 pub fn usual(d: &Fl, _q: &Fl, _p: &Fl) -> Fl {
@@ -48,15 +46,15 @@ pub fn level(d: &Fl, q: &Fl, p: &Fl) -> Fl {
     }
 }
 
-pub fn get_pref_functions() -> HashMap<String, FPref> {
-    let mut pref_functions: HashMap<String, FPref> = HashMap::new();
-    pref_functions.insert("usual".to_string(), usual);
-    pref_functions.insert("ushape".to_string(), ushape);
-    pref_functions.insert("vshape".to_string(), vshape);
-    pref_functions.insert("vshape2".to_string(), vshape2);
-    pref_functions.insert("level".to_string(), level);
-
-    pref_functions
+pub fn get_pref_function(name: &str) -> FPref {
+    match name {
+        "usual" => usual,
+        "ushape" => ushape,
+        "vshape" => vshape,
+        "vshape2" => vshape2,
+        "level" => level,
+        _ => usual,
+    }
 }
 
 #[cfg(test)]
@@ -67,10 +65,7 @@ mod tests {
     fn test_func_lookup() {
         let func_name: &str = "usual";
 
-        let map = get_pref_functions();
-        let func = map
-            .get(func_name)
-            .expect(&format!("{} not found", func_name));
+        let func = get_pref_function(func_name);
 
         assert_eq!(func(&0.0, &0.0, &0.0), 0.0);
     }
