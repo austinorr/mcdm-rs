@@ -47,6 +47,16 @@ fn test_sum_axis_0() {
     assert_eq!(exp, res);
 }
 
+pub fn mult_axis_0(mat: &[Arr], other: &Arr) -> Mat {
+    let mut new = mat.to_vec();
+    for (i, col) in new.iter_mut().enumerate() {
+        for x in col.iter_mut() {
+            *x *= other[i];
+        }
+    }
+    new
+}
+
 pub fn normalize_vec(vec: &[Fl]) -> Arr {
     // rescale proportionally so that all values sum to 1.0.
     // all input values must be >= 0.0

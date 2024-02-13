@@ -1,5 +1,6 @@
-use crate::pref_functions::get_pref_function;
+use crate::pref_functions::*;
 use crate::types::*;
+use rayon::prelude::*;
 
 pub fn unicriterion_flow(
     array: &[Fl],
@@ -10,26 +11,50 @@ pub fn unicriterion_flow(
     p: &Fl,
 ) {
     let n: Fl = array.len() as Fl;
-    let mut diff: Fl;
-    let mut ndiff: Fl;
-    let mut plus_sum: Fl;
-    let mut minus_sum: Fl;
 
-    let func = get_pref_function(fname);
+    let func = _get_pref_function(fname);
 
-    for (i, v1) in array.iter().enumerate() {
-        plus_sum = 0.0;
-        minus_sum = 0.0;
-        for v2 in array.iter() {
-            diff = v1 - v2;
-            ndiff = -diff;
-            plus_sum += func(&diff, q, p);
-            minus_sum += func(&ndiff, q, p);
-            plus[i] = plus_sum / (n - 1.0);
-            minus[i] = minus_sum / (n - 1.0);
-        }
-    }
+    array
+        .par_iter()
+        .zip(plus.par_iter_mut())
+        .zip(minus.par_iter_mut())
+        .for_each(|((v1, pl), mi)| {
+            for v2 in array.iter() {
+                let diff = v1 - v2;
+                let ndiff = -diff;
+                *pl += func(&diff, q, p) / (n - 1.0);
+                *mi += func(&ndiff, q, p) / (n - 1.0);
+            }
+        });
 }
+
+macro_rules! build_unicriterion_flow_fn {
+    ($wrapper_name:ident, $alg:expr ) => {
+        #[inline(always)]
+        pub fn $wrapper_name(array: &[Fl], plus: &mut [Fl], minus: &mut [Fl], q: &Fl, p: &Fl) {
+            let n: Fl = array.len() as Fl;
+
+            array
+                .par_iter()
+                .zip(plus.par_iter_mut())
+                .zip(minus.par_iter_mut())
+                .for_each(|((v1, pl), mi)| {
+                    for v2 in array.iter() {
+                        let diff = v1 - v2;
+                        let ndiff = -diff;
+                        *pl += $alg(&diff, q, p) / (n - 1.0);
+                        *mi += $alg(&ndiff, q, p) / (n - 1.0);
+                    }
+                });
+        }
+    };
+}
+
+build_unicriterion_flow_fn!(unicriterion_flow_usual, usual);
+build_unicriterion_flow_fn!(unicriterion_flow_ushape, ushape);
+build_unicriterion_flow_fn!(unicriterion_flow_vshape, vshape);
+build_unicriterion_flow_fn!(unicriterion_flow_vshape2, vshape2);
+build_unicriterion_flow_fn!(unicriterion_flow_level, level);
 
 #[cfg(test)]
 mod test {
@@ -57,5 +82,16 @@ mod test {
         t1: ((vec![0.8, 0.2, 0.5], "usual", 0.0, 0.0), (vec![1., 0., 0.5], vec![0., 1., 0.5])),
         t2: ((vec![1.,1.,1.], "usual", 0.0, 0.0), (vec![0.,0.,0.],vec![0.,0.,0.])),
         t3: ((vec![0.,0.,0.], "usual", 0.0, 0.0), (vec![0.,0.,0.], vec![0.,0.,0.])),
+    }
+
+    #[test]
+    fn test_ushape() {
+        use is_close::all_close;
+        let (ep, em) = (vec![0.5, 0., 0.], vec![0., 0.5, 0.]);
+        let (mut pp, mut pm) = (vec![0.; 3usize], vec![0.; 3usize]);
+        unicriterion_flow_ushape(&vec![0.8, 0.2, 0.5], &mut pp, &mut pm, &0.4, &0.8);
+
+        assert!(all_close!(ep, pp));
+        assert!(all_close!(em, pm));
     }
 }

@@ -15,7 +15,7 @@ fn generate_prom(n: usize, m: usize) -> Prom {
     let len: usize = matrix_t.len();
 
     prom::Prom::new(
-        &matrix_t,
+        matrix_t,
         vec![1.; len],
         vec![1.; len],
         vec!["usual".to_string(); len],
@@ -26,10 +26,11 @@ fn generate_prom(n: usize, m: usize) -> Prom {
 }
 
 fn bench() {
-    let mut p = generate_prom(6000, 1);
+    let mut p = generate_prom(6000, 24);
 
     let mut timings: Vec<f64> = Vec::new();
-    for _ in 0..25 {
+
+    for _ in 0..7 {
         let now: Instant = Instant::now();
         _ = p.compute_multicriterion_flow();
         timings.push(now.elapsed().as_secs_f64());
@@ -43,5 +44,9 @@ fn bench() {
 }
 
 fn main() {
+    // rayon::ThreadPoolBuilder::new()
+    //     .num_threads(1)
+    //     .build_global()
+    //     .unwrap();
     bench()
 }
