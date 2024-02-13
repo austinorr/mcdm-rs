@@ -7,9 +7,13 @@ edition = "2021"
 
 [dependencies]
 rand = "0.8.5"
+rayon = "1.8.1"
 
 [profile.release]
-debug = true
+# debug = true
+lto = true
+codegen-units = 1
+strip = true
 
 [dev-dependencies]
 is_close = "0.1.3"
