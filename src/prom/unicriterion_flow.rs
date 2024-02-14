@@ -1,8 +1,8 @@
-use crate::prom::pref_functions::*;
-use crate::prom::types::*;
+use super::pref_functions::*;
+use super::types::Fl;
 use rayon::prelude::*;
 
-pub fn unicriterion_flow(
+pub fn _unicriterion_flow(
     array: &[Fl],
     plus: &mut [Fl],
     minus: &mut [Fl],
@@ -71,7 +71,7 @@ mod test {
 
                 let mut plus: Vec<Fl> = vec![0.0; array.len()];
                 let mut minus: Vec<Fl> = vec![0.0; array.len()];
-                unicriterion_flow(&array, &mut plus, &mut minus, &func, &q, &p);
+                _unicriterion_flow(&array, &mut plus, &mut minus, &func, &q, &p);
                 assert_eq!(expected, (plus, minus));
             }
         )*

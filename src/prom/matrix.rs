@@ -1,4 +1,4 @@
-use crate::prom::types::*;
+use super::types::{Arr, Fl, Mat};
 
 pub fn transpose<T>(v: Vec<Vec<T>>) -> Vec<Vec<T>> {
     assert!(!v.is_empty());

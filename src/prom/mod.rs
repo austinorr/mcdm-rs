@@ -1,6 +1,9 @@
 pub mod matrix;
-pub mod multicriterion_flow;
-pub mod pref_functions;
-pub mod prom;
+mod multicriterion_flow;
+pub use multicriterion_flow::multicriterion_flow;
+mod prom;
+pub use prom::Prom;
+mod pref_functions;
 pub mod types;
-pub mod unicriterion_flow;
+mod unicriterion_flow;
+pub mod utils;
