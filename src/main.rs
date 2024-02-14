@@ -1,5 +1,4 @@
-use prom::Prom;
-use promrs::*;
+use promrs::{prom::prom::Prom, prom::types};
 use rand::{distributions::Uniform, Rng};
 use std::time::Instant;
 
@@ -14,7 +13,7 @@ fn generate_prom(n: usize, m: usize) -> Prom {
 
     let len: usize = matrix_t.len();
 
-    prom::Prom::new(
+    Prom::new(
         matrix_t,
         vec![1.; len],
         vec![1.; len],

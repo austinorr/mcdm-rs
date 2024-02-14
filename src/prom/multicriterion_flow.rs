@@ -1,5 +1,5 @@
-use crate::types::*;
-use crate::unicriterion_flow::*;
+use crate::prom::types::*;
+use crate::prom::unicriterion_flow::*;
 use rayon::prelude::*;
 
 pub fn multicriterion_flow(

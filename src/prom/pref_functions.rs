@@ -1,4 +1,4 @@
-use crate::types::*;
+use crate::prom::types::*;
 
 const REL_TOL: Fl = 1e-7;
 

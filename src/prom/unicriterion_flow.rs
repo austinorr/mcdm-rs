@@ -1,5 +1,5 @@
-use crate::pref_functions::*;
-use crate::types::*;
+use crate::prom::pref_functions::*;
+use crate::prom::types::*;
 use rayon::prelude::*;
 
 pub fn unicriterion_flow(
