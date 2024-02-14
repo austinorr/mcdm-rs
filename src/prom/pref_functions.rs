@@ -1,4 +1,4 @@
-use crate::prom::types::*;
+use super::types::{FPref, Fl};
 
 const REL_TOL: Fl = 1e-7;
 

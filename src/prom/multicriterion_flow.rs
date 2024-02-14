@@ -1,5 +1,8 @@
-use crate::prom::types::*;
-use crate::prom::unicriterion_flow::*;
+use super::types::{Arr, Fl, Mat};
+use super::unicriterion_flow::{
+    unicriterion_flow_level, unicriterion_flow_ushape, unicriterion_flow_usual,
+    unicriterion_flow_vshape, unicriterion_flow_vshape2,
+};
 use rayon::prelude::*;
 
 pub fn multicriterion_flow(

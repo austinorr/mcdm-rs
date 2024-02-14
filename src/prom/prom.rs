@@ -1,9 +1,9 @@
-use crate::prom::matrix::*;
-use crate::prom::multicriterion_flow::multicriterion_flow;
-use crate::prom::types::*;
+use super::matrix::{diff, mult_axis_0, normalize_vec, sum_axis_0, transpose};
+use super::multicriterion_flow::multicriterion_flow;
+use super::types::{Arr, Fl, Mat};
 use std::fmt::Error;
 
-pub fn apply_weights(pref_matrix_t: &[Arr], weights: &[Fl]) -> Mat {
+fn apply_weights(pref_matrix_t: &[Arr], weights: &[Fl]) -> Mat {
     // TODO: replace with ndarray mult
     let mut out: Mat = vec![vec![0.; pref_matrix_t[0].len()]; pref_matrix_t.len()];
     for (i, col) in pref_matrix_t.iter().enumerate() {
@@ -67,7 +67,7 @@ pub fn prom_ii(p: &PromResultI) -> PromResultII {
 
 #[derive(Default, Debug)]
 pub struct Prom {
-    pub matrix_t: Mat,
+    matrix_t: Mat,
     weights: Arr,
     criteria_type: Arr,
     pref_functions: Vec<String>,
