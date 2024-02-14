@@ -1,7 +1,7 @@
+use crate::prom::matrix::*;
+use crate::prom::multicriterion_flow::multicriterion_flow;
+use crate::prom::types::*;
 use std::fmt::Error;
-
-use crate::matrix::*;
-use crate::types::*;
 
 pub fn apply_weights(pref_matrix_t: &[Arr], weights: &[Fl]) -> Mat {
     // TODO: replace with ndarray mult
@@ -101,7 +101,6 @@ impl Prom {
     }
 
     pub fn compute_multicriterion_flow(&mut self) -> Result<(), Error> {
-        use crate::multicriterion_flow::multicriterion_flow;
         let (pref_matrix_plus_t, pref_matrix_minus_t) = multicriterion_flow(
             &mult_axis_0(&self.matrix_t, &self.criteria_type),
             &self.pref_functions,

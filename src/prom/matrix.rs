@@ -1,4 +1,4 @@
-use crate::types::*;
+use crate::prom::types::*;
 
 pub fn transpose<T>(v: Vec<Vec<T>>) -> Vec<Vec<T>> {
     assert!(!v.is_empty());
@@ -16,7 +16,7 @@ pub fn transpose<T>(v: Vec<Vec<T>>) -> Vec<Vec<T>> {
 
 pub fn diff(vec_a: &[Fl], vec_b: &[Fl]) -> Vec<Fl> {
     // TODO: remove by using ndarray
-    vec_a.into_iter().zip(vec_b).map(|(a, b)| a - b).collect()
+    vec_a.iter().zip(vec_b).map(|(a, b)| a - b).collect()
 }
 
 #[test]
