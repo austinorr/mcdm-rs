@@ -23,3 +23,14 @@ pub fn generate_prom(n: usize, m: usize) -> Prom {
     )
     .expect("unable to build with Prom::new")
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_generate_prom() {
+        let mut p = generate_prom(10, 3);
+        _ = p.compute_prom_ii().expect("unable to compute promII");
+    }
+}
