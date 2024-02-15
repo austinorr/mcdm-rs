@@ -11,11 +11,12 @@ pub fn multicriterion_flow(
     q: &[Fl],
     p: &[Fl],
 ) -> (Mat, Mat) {
-    // assume func, q, p are of same length as matrix_t
-
     let m: usize = matrix_t.len();
+    assert!(
+        m == pref_functions.len() && m == q.len() && m == p.len(),
+        "Inputs must be of same length"
+    );
     let n: usize = matrix_t[0].len();
-
     let mut pref_matrix_plus_t: Mat = vec![vec![0.0; n]; m];
     let mut pref_matrix_minus_t: Mat = vec![vec![0.0; n]; m];
 
@@ -34,7 +35,7 @@ pub fn multicriterion_flow(
                 "vshape" => unicriterion_flow_vshape(col, ppt, pmt, q, p),
                 "vshape2" => unicriterion_flow_vshape2(col, ppt, pmt, q, p),
                 "level" => unicriterion_flow_level(col, ppt, pmt, q, p),
-                _ => unicriterion_flow_usual(col, ppt, pmt, q, p),
+                _ => panic!("invalid preference function: {:?}", pref),
             }
         });
 
@@ -42,10 +43,35 @@ pub fn multicriterion_flow(
 }
 
 #[cfg(test)]
-#[allow(unused_variables)]
 mod test {
     use super::*;
     use is_close::all_close;
+
+    #[test]
+    #[should_panic(expected = "invalid preference function")]
+    fn test_mc_panic() {
+        let array = vec![vec![0.8, 0.2, 0.5], vec![0.5, 0.8, 0.2]]; // array
+        let func_names = vec!["usual".to_string(), "panic!".to_string()]; // func
+        let q = vec![0., 0.]; // q
+        let p = vec![0., 0.]; // p
+
+        _ = multicriterion_flow(&array, &func_names, &q, &p);
+    }
+
+    #[test]
+    #[should_panic(expected = "must be of same length")]
+    fn test_input_length() {
+        let array = vec![
+            vec![0.0; 3usize],
+            vec![0.0; 3usize],
+            vec![0.0; 3usize], // <- extra !
+        ]; // array
+        let func_names = vec!["usual".to_string(), "usual".to_string()]; // func
+        let q = vec![0., 0.]; // q
+        let p = vec![0., 0.]; // p
+
+        _ = multicriterion_flow(&array, &func_names, &q, &p);
+    }
 
     macro_rules! parametrize_multicriterion_flow {
         ($($name:ident: $value:expr,)*) => {
