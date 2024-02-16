@@ -4,4 +4,5 @@ mod benchmarks;
 
 criterion_main! {
     benchmarks::mc_bench::benches,
+    benchmarks::uc_bench::benches,
 }
