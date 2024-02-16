@@ -38,6 +38,6 @@ fn main() {
     }
 
     println!("Running Prom with dimensions {}x{}.", n, m);
-    let p: mcdmrs::prom::Prom = utils::generate_prom(n, m);
+    let p: Prom = utils::generate_prom(n, m);
     bench(p, iters);
 }
