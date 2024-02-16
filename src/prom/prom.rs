@@ -15,13 +15,13 @@ fn apply_weights(pref_matrix_t: &[Arr], weights: &[Fl]) -> Mat {
     out
 }
 
-#[derive(Clone, Debug)]
+#[derive(Default, Clone, Debug)]
 pub struct MCFlowResult {
     pub pref_matrix_plus_t: Mat,
     pub pref_matrix_minus_t: Mat,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Default, Clone, Debug)]
 pub struct PromResultI {
     pub phi_plus_score: Arr,
     pub phi_minus_score: Arr,
@@ -41,7 +41,7 @@ pub fn prom_i(pref_matrix_plus_t: &Mat, pref_matrix_minus_t: &Mat, weights: &[Fl
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Default, Clone, Debug)]
 pub struct PromResultII {
     pub score: Arr,
     pub weighted_flow: Mat,
@@ -65,35 +65,42 @@ pub fn prom_ii(p: &PromResultI) -> PromResultII {
     }
 }
 
+#[derive(Default, Clone, Debug)]
+pub struct Criteria {
+    pub weight: Arr,
+    pub criteria_type: Arr,
+    pub pref_function: Vec<String>,
+    pub q: Arr,
+    pub p: Arr,
+}
+
 #[derive(Default, Debug)]
 pub struct Prom {
-    matrix_t: Mat,
-    weights: Arr,
-    criteria_type: Arr,
-    pref_functions: Vec<String>,
-    q: Arr,
-    p: Arr,
-    mc_flow: Option<MCFlowResult>,
-    prom_i: Option<PromResultI>,
-    prom_ii: Option<PromResultII>,
+    pub matrix_t: Mat,
+    pub criteria: Criteria,
+    pub mc_flow: Option<MCFlowResult>,
+    pub prom_i: Option<PromResultI>,
+    pub prom_ii: Option<PromResultII>,
 }
 
 impl Prom {
     pub fn new(
         matrix_t: Mat,
-        weights: Arr,
+        weight: Arr,
         criteria_type: Arr,
-        pref_functions: Vec<String>,
+        pref_function: Vec<String>,
         q: Arr,
         p: Arr,
     ) -> Result<Self, Error> {
         Ok(Prom {
             matrix_t: matrix_t,
-            weights: normalize_vec(&weights),
-            criteria_type,
-            pref_functions,
-            q,
-            p,
+            criteria: Criteria {
+                weight,
+                criteria_type,
+                pref_function,
+                q,
+                p,
+            },
             mc_flow: None,
             prom_i: None,
             prom_ii: None,
@@ -102,10 +109,10 @@ impl Prom {
 
     pub fn compute_multicriterion_flow(&mut self) -> Result<(), Error> {
         let (pref_matrix_plus_t, pref_matrix_minus_t) = multicriterion_flow(
-            &mult_axis_0(&self.matrix_t, &self.criteria_type),
-            &self.pref_functions,
-            &self.q,
-            &self.p,
+            &mult_axis_0(&self.matrix_t, &self.criteria.criteria_type),
+            &self.criteria.pref_function,
+            &self.criteria.q,
+            &self.criteria.p,
         );
 
         self.mc_flow = Some(MCFlowResult {
@@ -126,7 +133,7 @@ impl Prom {
                 self.prom_i = Some(prom_i(
                     &self.mc_flow.as_ref().unwrap().pref_matrix_plus_t,
                     &self.mc_flow.as_ref().unwrap().pref_matrix_minus_t,
-                    &self.weights,
+                    &normalize_vec(&self.criteria.weight),
                 ));
             }
         }
@@ -148,8 +155,8 @@ impl Prom {
         Ok(())
     }
 
-    pub fn re_weight(&mut self, weights: &[Fl]) -> Result<(), Error> {
-        self.weights = normalize_vec(&weights);
+    pub fn re_weight(&mut self, weight: &[Fl]) -> Result<(), Error> {
+        self.criteria.weight = weight.to_vec();
         self.prom_i = None;
         self.compute_prom_ii()
     }
@@ -178,11 +185,13 @@ mod test {
 
         let _p: Prom = Prom {
             matrix_t: vec![vec![0.8, 0.2, 0.5], vec![0.8, 0.2, 0.5]],
-            weights: vec![1., 1.],
-            criteria_type: vec![-1., 1.],
-            pref_functions: vec!["usual".to_string(), "usual".to_string()],
-            q: vec![0., 0.],
-            p: vec![0., 0.],
+            criteria: Criteria {
+                weight: vec![1., 1.],
+                criteria_type: vec![-1., 1.],
+                pref_function: vec!["usual".to_string(), "usual".to_string()],
+                q: vec![0., 0.],
+                p: vec![0., 0.],
+            },
             mc_flow: None,
             prom_i: None,
             prom_ii: None,
