@@ -7,33 +7,37 @@ use rayon::prelude::*;
 
 pub fn multicriterion_flow(
     matrix_t: &[Arr],
-    pref_functions: &[String],
+    pref_function: &[String],
     q: &[Fl],
     p: &[Fl],
 ) -> (Mat, Mat) {
     let m: usize = matrix_t.len();
     assert!(
-        m == pref_functions.len() && m == q.len() && m == p.len(),
+        m == pref_function.len() && m == q.len() && m == p.len(),
         "Inputs must be of same length"
     );
     let n: usize = matrix_t[0].len();
     let mut pref_matrix_plus_t: Mat = vec![vec![0.0; n]; m];
     let mut pref_matrix_minus_t: Mat = vec![vec![0.0; n]; m];
 
-    matrix_t
-        .par_iter()
-        .zip(pref_functions.par_iter())
-        .zip(q.par_iter())
-        .zip(p.par_iter())
-        .zip(pref_matrix_plus_t.par_iter_mut())
-        .zip(pref_matrix_minus_t.par_iter_mut())
-        .for_each(|(((((col, pref), q), p), ppt), pmt)| {
+    (
+        matrix_t,
+        &mut pref_matrix_plus_t,
+        &mut pref_matrix_minus_t,
+        pref_function,
+        q,
+        p,
+    )
+        .into_par_iter()
+        .for_each(|(col, ppt, pmt, pref, q, p)| {
             // modify preference matrices in place
             match pref.as_str() {
                 "usual" => unicriterion_flow_usual(col, ppt, pmt, q, p),
                 "ushape" => unicriterion_flow_ushape(col, ppt, pmt, q, p),
                 "vshape" => unicriterion_flow_vshape(col, ppt, pmt, q, p),
                 "vshape2" => unicriterion_flow_vshape2(col, ppt, pmt, q, p),
+                "vshape_2" => unicriterion_flow_vshape2(col, ppt, pmt, q, p),
+                "linear" => unicriterion_flow_vshape2(col, ppt, pmt, q, p),
                 "level" => unicriterion_flow_level(col, ppt, pmt, q, p),
                 _ => panic!("invalid preference function: {:?}", pref),
             }

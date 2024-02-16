@@ -14,11 +14,9 @@ pub fn _unicriterion_flow(
 
     let func = _get_pref_function(fname);
 
-    array
-        .par_iter()
-        .zip(plus.par_iter_mut())
-        .zip(minus.par_iter_mut())
-        .for_each(|((v1, pl), mi)| {
+    (array, plus, minus)
+        .into_par_iter()
+        .for_each(|(v1, pl, mi)| {
             for v2 in array.iter() {
                 let diff = v1 - v2;
                 let ndiff = -diff;
@@ -30,15 +28,12 @@ pub fn _unicriterion_flow(
 
 macro_rules! build_unicriterion_flow_fn {
     ($wrapper_name:ident, $alg:expr ) => {
-        #[inline(always)]
         pub fn $wrapper_name(array: &[Fl], plus: &mut [Fl], minus: &mut [Fl], q: &Fl, p: &Fl) {
             let n: Fl = array.len() as Fl;
 
-            array
-                .par_iter()
-                .zip(plus.par_iter_mut())
-                .zip(minus.par_iter_mut())
-                .for_each(|((v1, pl), mi)| {
+            (array, plus, minus)
+                .into_par_iter()
+                .for_each(|(v1, pl, mi)| {
                     for v2 in array.iter() {
                         let diff = v1 - v2;
                         let ndiff = -diff;
