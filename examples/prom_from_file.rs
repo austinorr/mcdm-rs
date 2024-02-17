@@ -11,7 +11,7 @@ fn main() {
     use polars::prelude::*;
 
     const TESTFILE: &str = "./examples/data/alternatives.csv";
-    const CRITFILE: &str = "./examples/data/criterias.csv";
+    const CRITFILE: &str = "./examples/data/criteria.csv";
 
     // * Import CSV
     let mut data_df = interop::polars::df_from_csv(TESTFILE).expect("failed to load data");
@@ -21,8 +21,16 @@ fn main() {
     let mut p: Prom = interop::polars::prom_from_polars(&data_df, &criteria_df).unwrap();
     _ = p.compute_prom_ii().expect("failed to compute prom.");
 
-    let score = Series::new("score", p.prom_ii.as_ref().unwrap().score.clone());
+    let score = Series::new(
+        "score",
+        p.prom_ii.as_ref().unwrap().normalized_score.clone(),
+    );
+    let normalized_score = Series::new(
+        "normalized_score",
+        p.prom_ii.as_ref().unwrap().normalized_score.clone(),
+    );
     data_df.with_column(score).unwrap();
+    data_df.with_column(normalized_score).unwrap();
 
     configure_the_environment();
     println!("Scoring Criteria {:#?}", criteria_df);
