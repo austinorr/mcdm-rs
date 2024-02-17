@@ -8,7 +8,7 @@ pub fn generate_prom(n: usize, m: usize) -> Prom {
 
     let mut matrix_t: Mat = Vec::new();
     for _ in 0..m {
-        matrix_t.push((0..n).map(|_| rng.sample(&range)).collect())
+        matrix_t.push((0..n).map(|_| rng.sample(range)).collect())
     }
 
     let len: usize = matrix_t.len();
@@ -21,7 +21,6 @@ pub fn generate_prom(n: usize, m: usize) -> Prom {
         vec![0.; len],
         vec![0.; len],
     )
-    .expect("unable to build with Prom::new")
 }
 
 #[cfg(test)]

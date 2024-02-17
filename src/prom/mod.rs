@@ -1,10 +1,11 @@
-pub mod matrix;
+pub mod math;
 mod multicriterion_flow;
 pub use multicriterion_flow::multicriterion_flow;
-mod prom;
-pub use prom::{Criteria, Prom};
 pub mod interop;
 mod pref_functions;
+mod promethee;
+pub use promethee::Prom;
 pub mod types;
+pub use types::Criteria;
 pub mod unicriterion_flow;
 pub mod utils;

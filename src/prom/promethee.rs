@@ -1,37 +1,11 @@
-use super::matrix::{diff, mult_axis_0, normalize_vec, sum_axis_0, transpose};
+use super::math::{diff, min_max_norm, mult_axis_0, normalize_vec, sum_axis_0, transpose};
 use super::multicriterion_flow::multicriterion_flow;
-use super::types::{Arr, Fl, Mat};
+use super::types::{Arr, Criteria, Fl, MCFlowResult, Mat, PromResultI, PromResultII};
 use std::fmt::Error;
 
-fn apply_weights(pref_matrix_t: &[Arr], weights: &[Fl]) -> Mat {
-    // TODO: replace with ndarray mult
-    let mut out: Mat = vec![vec![0.; pref_matrix_t[0].len()]; pref_matrix_t.len()];
-    for (i, col) in pref_matrix_t.iter().enumerate() {
-        out[i] = col.to_vec();
-        if weights[i] != 0. {
-            out[i].iter_mut().for_each(|x| *x *= weights[i]);
-        }
-    }
-    out
-}
-
-#[derive(Default, Clone, Debug)]
-pub struct MCFlowResult {
-    pub pref_matrix_plus_t: Mat,
-    pub pref_matrix_minus_t: Mat,
-}
-
-#[derive(Default, Clone, Debug)]
-pub struct PromResultI {
-    pub phi_plus_score: Arr,
-    pub phi_minus_score: Arr,
-    pub phi_plus_matrix: Mat,
-    pub phi_minus_matrix: Mat,
-}
-
-pub fn prom_i(pref_matrix_plus_t: &Mat, pref_matrix_minus_t: &Mat, weights: &[Fl]) -> PromResultI {
-    let phi_plus_matrix: Mat = transpose(apply_weights(&pref_matrix_plus_t, &weights));
-    let phi_minus_matrix: Mat = transpose(apply_weights(&pref_matrix_minus_t, &weights));
+pub fn prom_i(pref_matrix_plus_t: &Mat, pref_matrix_minus_t: &Mat, weights: &Arr) -> PromResultI {
+    let phi_plus_matrix: Mat = transpose(mult_axis_0(pref_matrix_plus_t, weights));
+    let phi_minus_matrix: Mat = transpose(mult_axis_0(pref_matrix_minus_t, weights));
 
     PromResultI {
         phi_plus_score: sum_axis_0(&phi_plus_matrix),
@@ -41,37 +15,24 @@ pub fn prom_i(pref_matrix_plus_t: &Mat, pref_matrix_minus_t: &Mat, weights: &[Fl
     }
 }
 
-#[derive(Default, Clone, Debug)]
-pub struct PromResultII {
-    pub score: Arr,
-    pub weighted_flow: Mat,
-}
-
 pub fn prom_ii(p: &PromResultI) -> PromResultII {
     // TODO: use ndarray for a vectorized diff
     let score: Arr = diff(&p.phi_plus_score, &p.phi_minus_score);
+    let normalized_score = min_max_norm(&score);
 
     // TODO: use ndarray for a matrix diff
     let weighted_flow: Mat = p
         .phi_plus_matrix
         .iter()
         .zip(&p.phi_minus_matrix)
-        .map(|(a, b)| diff(&a, &b))
+        .map(|(a, b)| diff(a, b))
         .collect();
 
     PromResultII {
         score,
+        normalized_score,
         weighted_flow,
     }
-}
-
-#[derive(Default, Clone, Debug)]
-pub struct Criteria {
-    pub weight: Arr,
-    pub criteria_type: Arr,
-    pub pref_function: Vec<String>,
-    pub q: Arr,
-    pub p: Arr,
 }
 
 #[derive(Default, Debug)]
@@ -84,6 +45,22 @@ pub struct Prom {
 }
 
 impl Prom {
+    /// Returns a new Promethee analysis struct.
+    ///
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use mcdmrs::prom::Prom;
+    /// let mut p: Prom = Prom::new(
+    ///     vec![vec![0.8, 0.2, 0.05], vec![0.1, 0.6, 0.4]],
+    ///     vec![1., 1.],
+    ///     vec![-1., 1.],
+    ///     vec!["usual".to_string(), "usual".to_string()],
+    ///     vec![0., 0.],
+    ///     vec![0., 0.],
+    /// );
+    /// ```
     pub fn new(
         matrix_t: Mat,
         weight: Arr,
@@ -91,9 +68,9 @@ impl Prom {
         pref_function: Vec<String>,
         q: Arr,
         p: Arr,
-    ) -> Result<Self, Error> {
-        Ok(Prom {
-            matrix_t: matrix_t,
+    ) -> Self {
+        Prom {
+            matrix_t,
             criteria: Criteria {
                 weight,
                 criteria_type,
@@ -104,7 +81,7 @@ impl Prom {
             mc_flow: None,
             prom_i: None,
             prom_ii: None,
-        })
+        }
     }
 
     pub fn compute_multicriterion_flow(&mut self) -> Result<(), Error> {
@@ -148,7 +125,7 @@ impl Prom {
                 _ = self.compute_prom_ii();
             }
             _ => {
-                self.prom_ii = Some(prom_ii(&self.prom_i.as_ref().unwrap()));
+                self.prom_ii = Some(prom_ii(self.prom_i.as_ref().unwrap()));
             }
         }
 
@@ -167,21 +144,10 @@ mod test {
     use super::*;
 
     #[test]
-    fn test_apply_weights() {
-        let mat: Mat = vec![vec![0., 1., 0.5], vec![1., 0., 0.5]];
-        let weights: Arr = vec![1., 2.];
-
-        let new_mat: Mat = apply_weights(&mat, &weights);
-        let exp: Mat = vec![vec![0.0, 1.0, 0.5], vec![2.0, 0.0, 1.0]];
-        assert_eq!(exp, new_mat);
-    }
-
-    #[test]
     fn test_prom() {
         use is_close::all_close;
 
         let _p = Prom::default();
-        // println!("test prom default: {:#?}", p);
 
         let _p: Prom = Prom {
             matrix_t: vec![vec![0.8, 0.2, 0.5], vec![0.8, 0.2, 0.5]],
@@ -204,8 +170,7 @@ mod test {
             vec!["usual".to_string(), "usual".to_string()],
             vec![0., 0.],
             vec![0., 0.],
-        )
-        .expect("unable to build with Prom::new");
+        );
         println!("test prom new: {:#?}", p);
 
         _ = p.compute_multicriterion_flow();
@@ -298,8 +263,7 @@ mod test {
             0.45147368,
         ];
 
-        let mut p = Prom::new(transpose(matrix), weights, criteria_types, prefs, q, p)
-            .expect("failed to make Prom");
+        let mut p = Prom::new(transpose(matrix), weights, criteria_types, prefs, q, p);
 
         let _ = p.compute_prom_ii();
         let score = p.prom_ii.clone().unwrap().score;
@@ -337,8 +301,7 @@ mod test {
             0.41094736,
         ];
 
-        let mut p = Prom::new(transpose(matrix), weights, criteria_types, prefs, q, p)
-            .expect("failed to make Prom");
+        let mut p = Prom::new(transpose(matrix), weights, criteria_types, prefs, q, p);
 
         let _ = p.compute_prom_ii();
         let score = p.prom_ii.clone().unwrap().score;
@@ -376,8 +339,7 @@ mod test {
             0.44232639,
         ];
 
-        let mut p = Prom::new(transpose(matrix), weights, criteria_types, prefs, q, p)
-            .expect("failed to make Prom");
+        let mut p = Prom::new(transpose(matrix), weights, criteria_types, prefs, q, p);
 
         let _ = p.compute_prom_ii();
         let score = p.prom_ii.clone().unwrap().score;
@@ -415,8 +377,7 @@ mod test {
             0.43110296,
         ];
 
-        let mut p = Prom::new(transpose(matrix), weights, criteria_types, prefs, q, p)
-            .expect("failed to make Prom");
+        let mut p = Prom::new(transpose(matrix), weights, criteria_types, prefs, q, p);
 
         let _ = p.compute_prom_ii();
         let score = p.prom_ii.clone().unwrap().score;
@@ -454,8 +415,7 @@ mod test {
             0.43047367,
         ];
 
-        let mut p = Prom::new(transpose(matrix), weights, criteria_types, prefs, q, p)
-            .expect("failed to make Prom");
+        let mut p = Prom::new(transpose(matrix), weights, criteria_types, prefs, q, p);
 
         let _ = p.compute_prom_ii();
         let score = p.prom_ii.clone().unwrap().score;
@@ -491,8 +451,7 @@ mod test {
             0.43403623,
         ];
 
-        let mut p = Prom::new(transpose(matrix), weights, criteria_types, prefs, q, p)
-            .expect("failed to make Prom");
+        let mut p = Prom::new(transpose(matrix), weights, criteria_types, prefs, q, p);
 
         let _ = p.compute_prom_ii();
         let score = p.prom_ii.clone().unwrap().score;
