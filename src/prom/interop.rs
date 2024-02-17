@@ -1,7 +1,10 @@
+/// This module make it possible to load your data from a polars dataframe.
+use super::types::{Arr, Criteria, Mat};
+use super::Prom;
 #[cfg(feature = "io")]
 pub mod polars {
-    use super::super::prom::{Criteria, Prom};
-    use super::super::types::{Arr, Mat};
+    use super::*;
+    extern crate polars;
     use polars::prelude::*;
     use std::fmt::Error;
 
@@ -54,8 +57,8 @@ pub mod polars {
     }
 
     pub fn prom_from_polars(data_df: &DataFrame, criteria_df: &DataFrame) -> Result<Prom, Error> {
-        let matrix_t = df_to_matrix(&data_df).expect("unable to convert matrix.");
-        let criteria = df_to_criteria(&criteria_df).expect("unable to load criteria");
+        let matrix_t = df_to_matrix(data_df).expect("unable to convert matrix.");
+        let criteria = df_to_criteria(criteria_df).expect("unable to load criteria");
 
         Ok(Prom {
             matrix_t,
