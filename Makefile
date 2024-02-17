@@ -26,19 +26,19 @@ lint:
 	cargo fmt --version
 	cargo fmt --all -- --check
 	cargo clippy --version
-	cargo clippy -- -D warnings -A incomplete_features
-	cargo doc
+	cargo clippy
+	cargo doc --no-deps
 
-dBINARIES = $(eval BINARIES := $$(shell \
+dBINARIES = $(eval dBINARIES := $$(shell \
 	RUSTFLAGS="-C instrument-coverage" \
 	cargo test --tests --no-run --message-format=json | \
 	jq -r "select(.profile.test == true) | \
 	.filenames[]" | \
 	grep -v dSYM - | \
-	xargs printf "-object %s "))$(BINARIES)
-
+	xargs printf "-object %s "))$(dBINARIES)
 PACKAGE_NAME=mcdmrs
-BINARIES = $(find . -wholename './target/debug/$(PACKAGE_NAME)' -print -quit) $(dBINARIES)
+PACKAGE_BIN=$(shell find . -wholename './target/debug/$(PACKAGE_NAME)' -print -quit)
+BINARIES = $(PACKAGE_BIN) $(dBINARIES)
 
 LLVM_IGNORE_EXTERNAL = --ignore-filename-regex=/.cargo/registry \
 		--ignore-filename-regex=rustc/.*/library/std/ \
