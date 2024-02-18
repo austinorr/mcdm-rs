@@ -1,14 +1,17 @@
 /// This module make it possible to load your data from a polars dataframe.
 use super::types::{Arr, Criteria, Mat};
 use super::Prom;
+
 #[cfg(feature = "io")]
 pub mod polars {
     use super::*;
     extern crate polars;
-    use polars::prelude::*;
+    use polars::prelude::{
+        CsvReader, DataFrame, DataType, PolarsError, PolarsResult, SerReader, Series,
+    };
     use std::fmt::Error;
 
-    pub fn df_from_csv(filename: &str) -> Result<DataFrame, PolarsError> {
+    pub fn df_from_csv(filename: &str) -> PolarsResult<DataFrame> {
         CsvReader::from_path(filename)?.has_header(true).finish()
     }
 

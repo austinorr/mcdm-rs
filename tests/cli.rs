@@ -1,4 +1,4 @@
-use assert_cmd::prelude::*;
+use assert_cmd::prelude::{CommandCargoExt, OutputAssertExt};
 use std::process::Command; // Run programs // Add methods on commands
 
 #[test]

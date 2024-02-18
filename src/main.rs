@@ -1,20 +1,20 @@
 use clap::Parser;
-
+use std::env;
+use std::path::PathBuf;
 #[derive(Debug, Parser)]
 #[command(author, version, about, long_about = None, arg_required_else_help = true)]
 struct Cli {
     /// The path to the alternatives file
     #[arg(short, long)]
-    alternatives: std::path::PathBuf,
+    alternatives: PathBuf,
 
     /// The path to the criteria file
     #[arg(short, long)]
-    criteria: std::path::PathBuf,
+    criteria: PathBuf,
 }
 
 fn main() {
     fn configure_the_environment() {
-        use std::env;
         env::set_var("POLARS_FMT_TABLE_ROUNDED_CORNERS", "1"); // apply rounded corners to UTF8-styled tables.
         env::set_var("POLARS_FMT_MAX_COLS", "20"); // maximum number of columns shown when formatting DataFrames.
         env::set_var("POLARS_FMT_MAX_ROWS", "20"); // maximum number of rows shown when formatting DataFrames.
@@ -23,7 +23,7 @@ fn main() {
 
     if cfg!(feature = "io") && cfg!(feature = "cli") {
         use mcdmrs::prom::{interop, Prom};
-        use polars::prelude::*;
+        use polars::prelude::{DataFrame, NamedFrom, Series};
         use std::time::Instant;
 
         let args: Cli = Cli::parse();

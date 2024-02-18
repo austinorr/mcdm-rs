@@ -1,6 +1,6 @@
 use super::pref_functions::*;
 use super::types::Fl;
-use rayon::prelude::*;
+use rayon::prelude::{IntoParallelIterator, ParallelIterator};
 
 pub fn _unicriterion_flow(
     array: &[Fl],
