@@ -29,6 +29,12 @@ pub fn _unicriterion_flow(
 macro_rules! build_unicriterion_flow_fn {
     ($wrapper_name:ident, $alg:expr ) => {
         pub fn $wrapper_name(array: &[Fl], plus: &mut [Fl], minus: &mut [Fl], q: &Fl, p: &Fl) {
+            // when built with rayon this optimizes using loop unrolling. When built without
+            // rayon, this optimizes into 4 lane SIMD.
+            // SIMD alone (without parallelism) results in a 400% drop in performance for the
+            // benchmark.
+            // SIMD alone (without parallelism) results in a 70% drop in performance for the
+            // multicriteria benchmark.
             let n: Fl = array.len() as Fl;
 
             (array, plus, minus)
