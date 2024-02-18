@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Run tests
+      - name: Run linters
         run: |
           cargo fmt --all -- --check
           cargo clippy --no-deps
@@ -32,7 +32,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Run tests
-        run: make coverage
+      - name: Run coverage
+        run: |
+          install-rust-coverage
+          make coverage
       - name: Exit
         run: exit 0
