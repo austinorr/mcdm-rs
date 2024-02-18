@@ -1,3 +1,5 @@
+use polars::prelude::NamedFrom;
+
 pub fn configure_the_environment() {
     use std::env;
     env::set_var("POLARS_FMT_TABLE_ROUNDED_CORNERS", "1"); // apply rounded corners to UTF8-styled tables.
@@ -8,7 +10,7 @@ pub fn configure_the_environment() {
 
 fn main() {
     use mcdmrs::prom::{interop, Prom};
-    use polars::prelude::*;
+    use polars::prelude::{DataFrame, Series};
 
     const TESTFILE: &str = "./examples/data/alternatives.csv";
     const CRITFILE: &str = "./examples/data/criteria.csv";
