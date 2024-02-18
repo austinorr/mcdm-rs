@@ -34,7 +34,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Run coverage
         run: |
-          install-rust-coverage
+          make install-rust-coverage
           make coverage
       - name: Exit
         run: exit 0
