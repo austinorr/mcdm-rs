@@ -3,7 +3,7 @@ MAKEFLAGS += --silent
 .DEFAULT_GOAL := all
 
 install-rust-coverage:
-	cargo install rustfilt coverage-prepare
+	cargo install rustfilt
 	rustup component add llvm-tools-preview
 
 clean-coverage:
@@ -44,22 +44,29 @@ LLVM_IGNORE_EXTERNAL = --ignore-filename-regex=/.cargo/registry \
 		--ignore-filename-regex=rustc/.*/library/std/ \
 		--ignore-filename-regex=rustc/.*/library/core/
 
+RUSTC_SYSROOT=$(shell rustc --print sysroot)
+LLVM_PROFDATA=$(shell find $(RUSTC_SYSROOT) -name llvm-profdata)
+LLVM_COV=$(shell find $(RUSTC_SYSROOT) -name llvm-cov)
+
+
 cov-merge:
-	llvm-profdata merge -sparse default_*.profraw -o rust_coverage.profdata
+	$(LLVM_PROFDATA) merge -sparse default_*.profraw -o rust_coverage.profdata
 
 cov-report: cov-merge
-	llvm-cov report $(BINARIES) --instr-profile=rust_coverage.profdata \
+	$(LLVM_COV) report $(BINARIES) --instr-profile=rust_coverage.profdata \
 		$(LLVM_IGNORE_EXTERNAL)
 		
 cov-show: cov-merge
 	rm -fr htmlcov/
-	llvm-cov show $(BINARIES) --instr-profile=rust_coverage.profdata \
+	$(LLVM_COV) show $(BINARIES) --instr-profile=rust_coverage.profdata \
 		--format=html --Xdemangler=rustfilt \
 		--output-dir=./htmlcov/rust --show-instantiations=false \
 		$(LLVM_IGNORE_EXTERNAL)
 
-coverage: build-coverage
+coverage-ci: build-coverage
 	$(MAKE) cov-report
+
+coverage: coverage-ci
 	$(MAKE) cov-show
 
 bench:
