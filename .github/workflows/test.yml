@@ -29,9 +29,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Run coverage
-        continue-on-error: true
         run: |
           make install-rust-coverage
           make coverage-ci
-      - name: Exit
-        run: exit 0
