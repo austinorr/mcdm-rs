@@ -50,10 +50,10 @@ fn run_cli() {
     p.compute_prom_ii().expect("failed to compute prom.");
     let timing = now.elapsed().as_secs_f64();
 
-    let score = Series::new("score", p.prom_ii.as_ref().unwrap().score.clone());
+    let score = Series::new("score", p.prom_ii.as_ref().unwrap().score.to_vec());
     let normalized_score = Series::new(
         "normalized_score",
-        p.prom_ii.as_ref().unwrap().normalized_score.clone(),
+        p.prom_ii.as_ref().unwrap().normalized_score.to_vec(),
     );
     data_df.with_column(score).unwrap();
     data_df.with_column(normalized_score).unwrap();
