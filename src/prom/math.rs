@@ -46,10 +46,9 @@ pub fn min_max_norm(array: &Arr) -> Arr {
 
 pub fn normalize_vec(vec: &[Fl]) -> Arr {
     // rescale proportionally so that all values sum to 1.0.
-    // all input values must be >= 0.0
     let s: Fl = vec.iter().sum();
     let mut b: Arr = vec.to_vec();
-    if s != 0. {
+    if s > 1e-5 {
         b.iter_mut().for_each(|x: &mut Fl| *x /= s);
     }
     b
