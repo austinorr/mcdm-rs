@@ -1,10 +1,10 @@
 /// This module make it possible to load your data from a polars dataframe.
-use super::types::{Arr, Criteria, Mat};
-use super::Prom;
+use super::types::{Arr, Mat};
 
 #[cfg(feature = "io")]
 pub mod polars {
     use super::*;
+    use crate::prom::{Criteria, Prom};
     extern crate polars;
     use polars::prelude::{
         CsvReader, DataFrame, DataType, PolarsError, PolarsResult, SerReader, Series,

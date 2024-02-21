@@ -73,7 +73,7 @@ mod tests {
         let vec: Arr = vec![1., 0.0, 2.0];
         let exp: Fl = 0.;
 
-        assert_eq!(exp, diff(&vec, &vec).iter().sum());
+        assert_eq!(exp, diff(&vec, &vec).iter().sum::<Fl>());
     }
 
     #[test]
@@ -108,21 +108,21 @@ mod tests {
         let exp: Arr = vec![1. / 3., 0.0, 2. / 3.];
         assert_eq!(exp, normalize_vec(&vec));
         let one: Fl = 1.0;
-        assert_eq!(one, normalize_vec(&vec).iter().sum());
+        assert_eq!(one, normalize_vec(&vec).iter().sum::<Fl>());
 
         let vec: Arr = vec![0., 0.0, 0.0];
         assert_eq!(vec, normalize_vec(&vec));
 
         let vec: Arr = vec![0., 0.0, 1.];
         assert_eq!(vec, normalize_vec(&vec));
-        assert_eq!(one, normalize_vec(&vec).iter().sum());
+        assert_eq!(one, normalize_vec(&vec).iter().sum::<Fl>());
 
         let vec: Arr = vec![1. / 3., 0.0, 2. / 3.];
         assert_eq!(vec, normalize_vec(&vec));
-        assert_eq!(one, normalize_vec(&vec).iter().sum());
+        assert_eq!(one, normalize_vec(&vec).iter().sum::<Fl>());
 
         let vec: Arr = vec![0., 0.0, 0.5];
         assert_eq!(vec![0., 0.0, 1.], normalize_vec(&vec));
-        assert_eq!(one, normalize_vec(&vec).iter().sum());
+        assert_eq!(one, normalize_vec(&vec).iter().sum::<Fl>());
     }
 }
