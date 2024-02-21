@@ -1,4 +1,4 @@
-name: Lint & Test
+name: Lint & Test Coverage
 
 on:
   push:
@@ -17,14 +17,7 @@ jobs:
           cargo fmt --all -- --check
           cargo clippy --no-deps
 
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Run tests
-        run: cargo test  --verbose
-
-  coverage:
+  test_coverage:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
