@@ -1,5 +1,6 @@
 /// This module make it possible to load your data from a polars dataframe.
-use super::types::{Arr, Mat};
+use super::{Criteria, Prom};
+use ndarray::{Array1, Axis};
 
 #[cfg(feature = "io")]
 pub mod polars {
@@ -7,24 +8,14 @@ pub mod polars {
     use crate::prom::{Criteria, Prom};
     extern crate polars;
     use polars::prelude::{
-        CsvReader, DataFrame, DataType, PolarsError, PolarsResult, SerReader, Series,
+        CsvReader, DataFrame, Float32Type, IndexOrder, PolarsError, PolarsResult, SerReader, Series,
     };
-    use std::fmt::Error;
 
     pub fn df_from_csv(filename: &str) -> PolarsResult<DataFrame> {
         CsvReader::from_path(filename)?.has_header(true).finish()
     }
 
-    pub fn series_to_vec_f32(ser: &Series) -> Result<Arr, PolarsError> {
-        let new = ser
-            .cast(&DataType::Float32)?
-            .f32()?
-            .into_no_null_iter()
-            .collect();
-        Ok(new)
-    }
-
-    pub fn series_to_vec_string(ser: &Series) -> Result<Vec<String>, PolarsError> {
+    fn _pref_func_to_vec_string(ser: &Series) -> Result<Vec<String>, PolarsError> {
         let new = ser
             .str()?
             .into_iter()
@@ -36,31 +27,48 @@ pub mod polars {
         Ok(new)
     }
 
-    pub fn df_to_matrix(df: &DataFrame) -> Result<Mat, PolarsError> {
-        let (_, m) = df.shape();
-        let mut matrix: Mat = Vec::new();
-
-        for i in 1..m {
-            matrix.push(series_to_vec_f32(&df[i]).unwrap());
-        }
-
-        Ok(matrix)
+    fn _series_to_vec_string(ser: &Series) -> Result<Vec<String>, PolarsError> {
+        let new = ser
+            .str()?
+            .into_iter()
+            .map(|s| s.unwrap().to_string())
+            .collect();
+        Ok(new)
     }
 
     pub fn df_to_criteria(df: &DataFrame) -> Result<Criteria, PolarsError> {
+        let float_df = df.select(["weight", "criteria_type", "q", "p"])?;
+        let float_array = float_df.to_ndarray::<Float32Type>(IndexOrder::C)?;
+
         Ok(Criteria {
-            weight: series_to_vec_f32(&df["weight"]).expect("a weight column is required"),
-            criteria_type: series_to_vec_f32(&df["criteria_type"])
-                .expect("a criteria_type column is required"),
-            pref_function: series_to_vec_string(&df["pref_function"])
-                .expect("a pref_function column is required"),
-            q: series_to_vec_f32(&df["q"]).expect("a q column is required"),
-            p: series_to_vec_f32(&df["p"]).expect("a q column is required"),
+            weight: float_array
+                .index_axis(Axis(1), float_df.get_column_index("weight").unwrap())
+                .to_owned(),
+            criteria_type: float_array
+                .index_axis(Axis(1), float_df.get_column_index("criteria_type").unwrap())
+                .to_owned(),
+            pref_function: Array1::<String>::from_vec(
+                _pref_func_to_vec_string(df.column("pref_function")?).unwrap(),
+            ),
+            q: float_array
+                .index_axis(Axis(1), float_df.get_column_index("q").unwrap())
+                .to_owned(),
+            p: float_array
+                .index_axis(Axis(1), float_df.get_column_index("p").unwrap())
+                .to_owned(),
         })
     }
 
-    pub fn prom_from_polars(data_df: &DataFrame, criteria_df: &DataFrame) -> Result<Prom, Error> {
-        let matrix_t = df_to_matrix(data_df).expect("unable to convert matrix.");
+    pub fn prom_from_polars(
+        data_df: &DataFrame,
+        criteria_df: &DataFrame,
+    ) -> Result<Prom, PolarsError> {
+        let matrix_t = data_df
+            .select(_series_to_vec_string(criteria_df.column("name")?).unwrap())?
+            .to_ndarray::<Float32Type>(IndexOrder::C)
+            .expect("unable to convert matrix.")
+            .t()
+            .to_owned();
         let criteria = df_to_criteria(criteria_df).expect("unable to load criteria");
 
         Ok(Prom {
@@ -70,5 +78,15 @@ pub mod polars {
             prom_i: None,
             prom_ii: None,
         })
+    }
+
+    pub trait FromPolars {
+        fn from_polars(data_df: &DataFrame, criteria_df: &DataFrame) -> Result<Prom, PolarsError>;
+    }
+
+    impl FromPolars for Prom {
+        fn from_polars(data_df: &DataFrame, criteria_df: &DataFrame) -> Result<Prom, PolarsError> {
+            prom_from_polars(data_df, criteria_df)
+        }
     }
 }
