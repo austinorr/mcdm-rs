@@ -8,7 +8,7 @@ pub fn uc_bench(c: &mut Criterion) {
     let range: Uniform<Fl> = Uniform::new(0.0, 1.0);
 
     let n = 8000;
-    let array: Arr = (0..n).map(|_| 20.0 * rng.sample(&range)).collect();
+    let array: Arr = (0..n).map(|_| 20.0 * rng.sample(range)).collect();
 
     let q: Fl = 0.;
     let p: Fl = 0.;

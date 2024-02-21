@@ -11,7 +11,7 @@ pub fn mc_bench(c: &mut Criterion) {
     let m = 5;
     let n = 6000;
     for _ in 0..m {
-        matrix_t.push((0..n).map(|_| 20.0 * rng.sample(&range) - 10.0).collect())
+        matrix_t.push((0..n).map(|_| 20.0 * rng.sample(range) - 10.0).collect())
     }
 
     let pref = ["usual", "ushape", "vshape", "vshape2", "level"]
