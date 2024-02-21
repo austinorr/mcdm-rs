@@ -6,6 +6,7 @@ edition = "2021"
 [dependencies]
 polars = { version = "0.37.0", default-features = false, features = [
     "csv",
+    "fmt",
 ], optional = true }
 clap = { version = "4.5.1", features = ["derive"], optional = true }
 rand = "0.8.5"

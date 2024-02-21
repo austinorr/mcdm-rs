@@ -35,7 +35,7 @@ pub fn prom_ii(p: &PromResultI) -> PromResultII {
     }
 }
 
-#[derive(Default, Debug)]
+#[derive(Clone, Default, Debug)]
 pub struct Prom {
     pub matrix_t: Mat,
     pub criteria: Criteria,
