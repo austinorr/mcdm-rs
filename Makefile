@@ -71,7 +71,7 @@ coverage: coverage-ci
 
 bench:
 	cargo build --release
-	/usr/bin/time -v ./target/release/promrs
+	/usr/bin/time -v ./target/release/$(PACKAGE_NAME) -a ./examples/data/alternatives_long.csv -c ./examples/data/criteria.csv
 
 release:
 	cargo build -r
