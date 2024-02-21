@@ -187,7 +187,7 @@ mod test {
             rel_tol = 1e-6
         ));
 
-        _ = p.re_weight(&vec![0.75, 0.25]);
+        _ = p.re_weight(&[0.75, 0.25]);
         println!("test prom re-weight: {:#?}", p);
 
         let newscore: Arr = p.prom_ii.clone().unwrap().score;

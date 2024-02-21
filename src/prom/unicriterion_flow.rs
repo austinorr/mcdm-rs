@@ -90,7 +90,7 @@ mod test {
         use is_close::all_close;
         let (ep, em) = (vec![0.5, 0., 0.], vec![0., 0.5, 0.]);
         let (mut pp, mut pm) = (vec![0.; 3usize], vec![0.; 3usize]);
-        unicriterion_flow_ushape(&vec![0.8, 0.2, 0.5], &mut pp, &mut pm, &0.4, &0.8);
+        unicriterion_flow_ushape(&[0.8, 0.2, 0.5], &mut pp, &mut pm, &0.4, &0.8);
 
         assert!(all_close!(ep, pp));
         assert!(all_close!(em, pm));
