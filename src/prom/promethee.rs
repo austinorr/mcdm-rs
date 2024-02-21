@@ -261,10 +261,10 @@ mod test {
             vec![-7.1, -0.21, 9.71, -5.16, 3.44, 5.23, -5.25, 4.56],
         ];
 
-        let weights: Array1<Fl> = array![0.11, 0.157, 0.158, 0.14, 0.061, 0.194, 0.102, 0.078];
+        let weight: Array1<Fl> = array![0.11, 0.157, 0.158, 0.14, 0.061, 0.194, 0.102, 0.078];
 
-        let criteria_types: Array1<Fl> = array![-1., -1., 1., 1., -1., 1., -1., 1.];
-        let prefs: Vec<String> = [
+        let criteria_type: Array1<Fl> = array![-1., -1., 1., 1., -1., 1., -1., 1.];
+        let pref_function: Vec<String> = [
             "vshape2", "usual", "ushape", "vshape", "usual", "level", "vshape2", "usual",
         ]
         .map(String::from)
@@ -276,11 +276,11 @@ mod test {
         {
             (
                 Array2::<Fl>::from_vec2(mat).t().to_owned(),
-                Array1::<Fl>::from(weights),
-                Array1::<Fl>::from(criteria_types),
-                Array1::<String>::from(prefs),
-                Array1::<Fl>::from(q),
-                Array1::<Fl>::from(p),
+                weight,
+                criteria_type,
+                Array1::<String>::from(pref_function),
+                q,
+                p,
             )
         }
     }
