@@ -30,6 +30,7 @@ mod test {
     #[test]
     fn test_generate_prom() {
         let mut p = generate_prom(10, 3);
-        _ = p.compute_prom_ii().expect("unable to compute promII");
+        println!("{:#?}", p);
+        p.compute_prom_ii().expect("unable to compute promII");
     }
 }

@@ -9,14 +9,13 @@ use polars::prelude::DataFrame;
 use rand::{distributions::Uniform, thread_rng, Rng};
 
 fn from_file_long(p: &mut Prom) -> Vec<Fl> {
-    _ = p.compute_prom_ii().expect("failed to compute prom.");
+    p.compute_prom_ii().expect("failed to compute prom.");
     p.mc_flow = None;
     p.prom_ii.as_ref().unwrap().score.to_vec()
 }
 
 fn reweight(p: &mut Prom, weights: Arr) -> Arr {
-    // let weights = Array1::<Fl>::from_iter((0..p.criteria.weight.len()).map(|_| rng.sample(range)));
-    _ = p.re_weight(&weights).expect("failed to reweight prom.");
+    p.re_weight(&weights).expect("failed to reweight prom.");
     p.prom_ii.as_ref().unwrap().score.to_vec()
 }
 

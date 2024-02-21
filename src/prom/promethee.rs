@@ -139,6 +139,8 @@ impl Prom {
     }
 }
 
+#[allow(clippy::type_complexity)]
+#[allow(clippy::excessive_precision)]
 #[cfg(test)]
 mod test {
     use super::*;
