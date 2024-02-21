@@ -14,10 +14,14 @@ clean-perf:
 	find . -name '*perf.data*' -exec rm -fr {} +
 	find . -name '*flame*.svg' -exec rm -fr {} +
 
+clean-cargo:
+	cargo clean --profile test
+	cargo clean --release
+
 clean: clean-coverage clean-perf
 
 build-coverage: clean
-	RUSTFLAGS="-C instrument-coverage" cargo test
+	RUSTFLAGS="-C instrument-coverage" cargo test --tests
 
 format:
 	cargo fmt
