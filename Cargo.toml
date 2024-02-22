@@ -18,6 +18,7 @@ ndarray = { version = "0.15.6", features = ["rayon"] }
 default = ["io", "cli"]
 io = ["dep:polars"]
 cli = ["dep:clap"]
+nightly = []
 
 [dev-dependencies]
 criterion = "0.5.1"

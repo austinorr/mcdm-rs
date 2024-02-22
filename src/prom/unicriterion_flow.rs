@@ -19,10 +19,23 @@ pub fn _unicriterion_flow(
         .and(minus)
         .par_for_each(|&v1, pl, mi| {
             for v2 in array.iter() {
-                let diff = v1 - v2;
-                let ndiff = -diff;
-                *pl += func(&diff, q, p) / (n - 1.0);
-                *mi += func(&ndiff, q, p) / (n - 1.0);
+                #[cfg(feature = "nightly")]
+                unsafe {
+                    use std::intrinsics::{fadd_fast, fdiv_fast, fsub_fast};
+
+                    let diff = fsub_fast(v1, *v2);
+                    let ndiff = -diff;
+                    *pl = fadd_fast(*pl, fdiv_fast(func(&diff, q, p), n));
+                    *mi = fadd_fast(*mi, fdiv_fast(func(&ndiff, q, p), n));
+                }
+
+                #[cfg(not(feature = "nightly"))]
+                {
+                    let diff = v1 - v2;
+                    let ndiff = -diff;
+                    *pl += func(&diff, q, p) / n;
+                    *mi += func(&ndiff, q, p) / n;
+                }
             }
         });
 }
@@ -49,10 +62,23 @@ macro_rules! build_unicriterion_flow_fn {
                 .and(minus)
                 .par_for_each(|&v1, pl, mi| {
                     for v2 in array.iter() {
-                        let diff = v1 - v2;
-                        let ndiff = -diff;
-                        *pl += $alg(&diff, q, p) / (n - 1.0);
-                        *mi += $alg(&ndiff, q, p) / (n - 1.0);
+                        #[cfg(feature = "nightly")]
+                        unsafe {
+                            use std::intrinsics::{fadd_fast, fdiv_fast, fsub_fast};
+
+                            let diff = fsub_fast(v1, *v2);
+                            let ndiff = -diff;
+                            *pl = fadd_fast(*pl, fdiv_fast($alg(&diff, q, p), n));
+                            *mi = fadd_fast(*mi, fdiv_fast($alg(&ndiff, q, p), n));
+                        }
+
+                        #[cfg(not(feature = "nightly"))]
+                        {
+                            let diff = v1 - v2;
+                            let ndiff = -diff;
+                            *pl += $alg(&diff, q, p) / n;
+                            *mi += $alg(&ndiff, q, p) / n;
+                        }
                     }
                 });
         }
