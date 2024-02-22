@@ -9,6 +9,7 @@ install-rust-coverage:
 clean-coverage:
 	find . -name '*.profdata' -exec rm -fr {} +
 	find . -name '*.profraw' -exec rm -fr {} +
+	find . -name '*.lcov' -exec rm -fr {} +
 
 clean-perf:
 	find . -name '*perf.data*' -exec rm -fr {} +
@@ -52,7 +53,6 @@ RUSTC_SYSROOT=$(shell rustc --print sysroot)
 LLVM_PROFDATA=$(shell find $(RUSTC_SYSROOT) -name llvm-profdata)
 LLVM_COV=$(shell find $(RUSTC_SYSROOT) -name llvm-cov)
 
-
 cov-merge:
 	$(LLVM_PROFDATA) merge -sparse default_*.profraw -o rust_coverage.profdata
 
@@ -67,8 +67,14 @@ cov-show: cov-merge
 		--output-dir=./htmlcov/rust --show-instantiations=false \
 		$(LLVM_IGNORE_EXTERNAL)
 
+cov-export: cov-merge
+	$(LLVM_COV) export $(BINARIES) --instr-profile=rust_coverage.profdata \
+		--format=lcov \
+		$(LLVM_IGNORE_EXTERNAL) > $(PACKAGE_NAME).lcov
+
 coverage-ci: build-coverage
 	$(MAKE) cov-report
+	$(MAKE) cov-export
 
 coverage: coverage-ci
 	$(MAKE) cov-show
