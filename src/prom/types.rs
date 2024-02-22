@@ -2,8 +2,9 @@ use ndarray::{Array2, Axis};
 
 pub type Fl = f32;
 pub type Arr = Vec<Fl>;
-pub type Mat = Vec<Vec<Fl>>;
+pub type Mat = Vec<Arr>;
 pub type FPref = fn(&Fl, &Fl, &Fl) -> Fl;
+pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
 pub trait FromVec2 {
     fn from_vec2(vec2: Mat) -> Array2<Fl>;

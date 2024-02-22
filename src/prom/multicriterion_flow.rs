@@ -1,16 +1,22 @@
-use super::types::Fl;
+use super::types::{Fl, Result};
 use super::unicriterion_flow::{
     unicriterion_flow_level, unicriterion_flow_ushape, unicriterion_flow_usual,
     unicriterion_flow_vshape, unicriterion_flow_vshape2,
 };
 use ndarray::{Array2, ArrayView1, ArrayView2, Axis, Zip};
 
+#[derive(Clone, Debug, Default)]
+pub struct MCFlowResult {
+    pub pref_matrix_plus_t: Array2<Fl>,
+    pub pref_matrix_minus_t: Array2<Fl>,
+}
+
 pub fn multicriterion_flow(
     matrix_t: ArrayView2<Fl>,
     pref_function: ArrayView1<String>,
     q: ArrayView1<Fl>,
     p: ArrayView1<Fl>,
-) -> (Array2<Fl>, Array2<Fl>) {
+) -> Result<MCFlowResult> {
     let (m, n) = matrix_t.dim();
     assert!(
         m == pref_function.len() && m == q.len() && m == p.len(),
@@ -39,7 +45,21 @@ pub fn multicriterion_flow(
             }
         });
 
-    (pref_matrix_plus_t, pref_matrix_minus_t)
+    Ok(MCFlowResult {
+        pref_matrix_plus_t,
+        pref_matrix_minus_t,
+    })
+}
+
+impl MCFlowResult {
+    pub fn new(
+        matrix_t: ArrayView2<Fl>,
+        pref_function: ArrayView1<String>,
+        q: ArrayView1<Fl>,
+        p: ArrayView1<Fl>,
+    ) -> Result<MCFlowResult> {
+        multicriterion_flow(matrix_t, pref_function, q, p)
+    }
 }
 
 #[cfg(test)]
@@ -78,11 +98,13 @@ mod test {
         ($($name:ident: $value:expr,)*) => {
         $(
             #[test]
-            fn $name() {
+            fn $name() -> Result<()>{
                 let (input, expected) = $value;
                 let (array, func_names, q, p) = input;
                 let (exp_plus, exp_minus) = expected;
-                let (plus, minus) = multicriterion_flow(array.view(), func_names.view(), q.view(), p.view());
+                let mc_result = multicriterion_flow(array.view(), func_names.view(), q.view(), p.view())?;
+                let plus = mc_result.pref_matrix_plus_t;
+                let minus = mc_result.pref_matrix_minus_t;
 
                 for (i, exp) in exp_plus.axis_iter(Axis(0)).enumerate() {
                     let pass:bool = all_close!(exp.to_vec(), plus.index_axis(Axis(0), i).to_vec(), rel_tol=1e-6, abs_tol=1e-3);
@@ -92,6 +114,7 @@ mod test {
                     let pass:bool = all_close!(exp.to_vec(), minus.index_axis(Axis(0), i).to_vec(), rel_tol=1e-6, abs_tol=1e-3);
                     assert!(pass, "minus: {:#?} == {:#?}", exp.to_vec(), minus.index_axis(Axis(0), i).to_vec());
                 }
+                Ok(())
             }
         )*
         }
