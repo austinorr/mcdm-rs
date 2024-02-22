@@ -10,7 +10,7 @@ pub fn _unicriterion_flow(
     q: &Fl,
     p: &Fl,
 ) {
-    let n: Fl = array.len() as Fl;
+    let n: Fl = array.len() as Fl - 1.0;
 
     let func = _get_pref_function(fname);
 
@@ -55,7 +55,7 @@ macro_rules! build_unicriterion_flow_fn {
             // benchmark.
             // SIMD alone (without parallelism) results in a 70% drop in performance for the
             // multicriteria benchmark.
-            let n: Fl = array.len() as Fl;
+            let n: Fl = array.len() as Fl - 1.0;
 
             Zip::from(array)
                 .and(plus)
