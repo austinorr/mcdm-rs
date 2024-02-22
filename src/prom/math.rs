@@ -1,16 +1,13 @@
-use super::types::Fl;
+use super::types::{Fl, Result};
 use ndarray::{Array1, Array2, ArrayView1, ArrayView2};
 
-pub fn mult_axis_0(ndarr: ArrayView2<Fl>, other: ArrayView1<Fl>) -> Array2<Fl> {
-    &ndarr
-        * &other
-            .into_shape((ndarr.dim().0, 1))
-            .unwrap_or_else(|_| panic!("{:#?} {:#?}", ndarr.dim(), other.dim()))
+pub fn mult_axis_0(ndarr: ArrayView2<Fl>, other: ArrayView1<Fl>) -> Result<Array2<Fl>> {
+    Ok(&ndarr * &other.into_shape((ndarr.dim().0, 1))?)
 }
 
 pub fn min_max_norm(array: ArrayView1<Fl>) -> Array1<Fl> {
-    let _max: Fl = *array.iter().max_by(|a, b| a.total_cmp(b)).unwrap();
-    let _min: Fl = *array.iter().min_by(|a, b| a.total_cmp(b)).unwrap();
+    let _max: Fl = *array.iter().max_by(|a, b| a.total_cmp(b)).unwrap_or(&0.0);
+    let _min: Fl = *array.iter().min_by(|a, b| a.total_cmp(b)).unwrap_or(&0.0);
     let range = _max - _min;
     if range.abs() < 1e-7 {
         Array1::ones(array.len())
@@ -21,7 +18,6 @@ pub fn min_max_norm(array: ArrayView1<Fl>) -> Array1<Fl> {
 
 pub fn normalize_vec(array: ArrayView1<Fl>) -> Array1<Fl> {
     // rescale proportionally so that all values sum to 1.0.
-    // all input values must be >= 0.0
     let s: Fl = array.iter().sum();
 
     if s > 1e-5 {
@@ -68,7 +64,7 @@ mod tests {
         let mat = array![[0., 1., 0.5], [1., 0., 0.5]];
         let weights = array![1., 2.];
 
-        let new_mat = mult_axis_0(mat.view(), weights.view());
+        let new_mat = mult_axis_0(mat.view(), weights.view()).unwrap();
         let exp = array![[0.0, 1.0, 0.5], [2.0, 0.0, 1.0]];
         assert_eq!(exp, new_mat);
     }
