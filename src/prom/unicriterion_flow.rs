@@ -10,7 +10,7 @@ pub fn _unicriterion_flow(
     q: &Fl,
     p: &Fl,
 ) {
-    let n: Fl = array.len() as Fl;
+    let n: Fl = array.len() as Fl - 1.0;
 
     let func = _get_pref_function(fname);
 
@@ -21,8 +21,8 @@ pub fn _unicriterion_flow(
             for v2 in array.iter() {
                 let diff = v1 - v2;
                 let ndiff = -diff;
-                *pl += func(&diff, q, p) / (n - 1.0);
-                *mi += func(&ndiff, q, p) / (n - 1.0);
+                *pl += func(&diff, q, p) / n;
+                *mi += func(&ndiff, q, p) / n;
             }
         });
 }
@@ -42,7 +42,7 @@ macro_rules! build_unicriterion_flow_fn {
             // benchmark.
             // SIMD alone (without parallelism) results in a 70% drop in performance for the
             // multicriteria benchmark.
-            let n: Fl = array.len() as Fl;
+            let n: Fl = array.len() as Fl - 1.0;
 
             Zip::from(array)
                 .and(plus)
@@ -51,8 +51,8 @@ macro_rules! build_unicriterion_flow_fn {
                     for v2 in array.iter() {
                         let diff = v1 - v2;
                         let ndiff = -diff;
-                        *pl += $alg(&diff, q, p) / (n - 1.0);
-                        *mi += $alg(&ndiff, q, p) / (n - 1.0);
+                        *pl += $alg(&diff, q, p) / n;
+                        *mi += $alg(&ndiff, q, p) / n;
                     }
                 });
         }
@@ -89,9 +89,9 @@ mod test {
     }
 
     parametrize_unicriterion_flow! {
-        unicriterion_usual1: ((vec![0.8, 0.2, 0.5], "usual", 0.0, 0.0), (vec![1., 0., 0.5], vec![0., 1., 0.5])),
-        unicriterion_usual2: ((vec![1.,1.,1.], "usual", 0.0, 0.0), (vec![0.,0.,0.],vec![0.,0.,0.])),
-        unicriterion_usual3: ((vec![0.,0.,0.], "usual", 0.0, 0.0), (vec![0.,0.,0.], vec![0.,0.,0.])),
+        _unicriterion_usual1: ((vec![0.8, 0.2, 0.5], "usual", 0.0, 0.0), (vec![1., 0., 0.5], vec![0., 1., 0.5])),
+        _unicriterion_usual2: ((vec![1.,1.,1.], "usual", 0.0, 0.0), (vec![0.,0.,0.],vec![0.,0.,0.])),
+        _unicriterion_usual3: ((vec![0.,0.,0.], "usual", 0.0, 0.0), (vec![0.,0.,0.], vec![0.,0.,0.])),
     }
 
     #[test]
