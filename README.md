@@ -1,5 +1,8 @@
 # `mcdmrs`
 
+![ci](https://github.com/austinorr/mcdm-rs/actions/workflows/test.yml/badge.svg?branch=main)
+[![codecov](https://codecov.io/gh/austinorr/mcdm-rs/graph/badge.svg?token=8HCN28H7V6)](https://codecov.io/gh/austinorr/mcdm-rs)
+
 High performance Multi-Criterion Decision Making Algorithms (MCDMs) written in Rust for 🚀.
 
 Currently includes Promethee I/II, with room to expand.
