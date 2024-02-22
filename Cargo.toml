@@ -15,7 +15,7 @@ rayon = "1.8.1"
 ndarray = { version = "0.15.6", features = ["rayon"] }
 
 [features]
-default = ["io", "cli"]
+default = ["io", "cli", "nightly"]
 io = ["dep:polars"]
 cli = ["dep:clap"]
 nightly = []
