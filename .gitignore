@@ -4,3 +4,4 @@ _no_git*
 /htmlcov
 *.profraw
 *.profdata
+*.lcov
