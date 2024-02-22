@@ -1,21 +1,18 @@
 /// This module make it possible to load your data from a polars dataframe.
-use super::{Criteria, Prom};
-use ndarray::{Array1, Axis};
-
 #[cfg(feature = "io")]
 pub mod polars {
-    use super::*;
-    use crate::prom::{Criteria, Prom};
+    use crate::prom::{Criteria, Prom, Result};
     extern crate polars;
+    use ndarray::{Array1, Axis};
     use polars::prelude::{
-        CsvReader, DataFrame, Float32Type, IndexOrder, PolarsError, PolarsResult, SerReader, Series,
+        CsvReader, DataFrame, Float32Type, IndexOrder, PolarsResult, SerReader, Series,
     };
 
     pub fn df_from_csv(filename: &str) -> PolarsResult<DataFrame> {
         CsvReader::from_path(filename)?.has_header(true).finish()
     }
 
-    fn _pref_func_to_vec_string(ser: &Series) -> Result<Vec<String>, PolarsError> {
+    fn _pref_func_to_vec_string(ser: &Series) -> Result<Vec<String>> {
         let new = ser
             .str()?
             .into_iter()
@@ -27,7 +24,7 @@ pub mod polars {
         Ok(new)
     }
 
-    fn _series_to_vec_string(ser: &Series) -> Result<Vec<String>, PolarsError> {
+    fn _series_to_vec_string(ser: &Series) -> Result<Vec<String>> {
         let new = ser
             .str()?
             .into_iter()
@@ -36,7 +33,7 @@ pub mod polars {
         Ok(new)
     }
 
-    pub fn df_to_criteria(df: &DataFrame) -> Result<Criteria, PolarsError> {
+    pub fn df_to_criteria(df: &DataFrame) -> Result<Criteria> {
         let float_df = df.select(["weight", "criteria_type", "q", "p"])?;
         let float_array = float_df.to_ndarray::<Float32Type>(IndexOrder::C)?;
 
@@ -59,10 +56,7 @@ pub mod polars {
         })
     }
 
-    pub fn prom_from_polars(
-        data_df: &DataFrame,
-        criteria_df: &DataFrame,
-    ) -> Result<Prom, PolarsError> {
+    pub fn prom_from_polars(data_df: &DataFrame, criteria_df: &DataFrame) -> Result<Prom> {
         let matrix_t = data_df
             .select(_series_to_vec_string(criteria_df.column("name")?).unwrap())?
             .to_ndarray::<Float32Type>(IndexOrder::C)
@@ -81,12 +75,70 @@ pub mod polars {
     }
 
     pub trait FromPolars {
-        fn from_polars(data_df: &DataFrame, criteria_df: &DataFrame) -> Result<Prom, PolarsError>;
+        fn from_polars(data_df: &DataFrame, criteria_df: &DataFrame) -> Result<Prom>;
     }
 
     impl FromPolars for Prom {
-        fn from_polars(data_df: &DataFrame, criteria_df: &DataFrame) -> Result<Prom, PolarsError> {
+        fn from_polars(data_df: &DataFrame, criteria_df: &DataFrame) -> Result<Prom> {
             prom_from_polars(data_df, criteria_df)
+        }
+    }
+
+    #[cfg(test)]
+    mod test {
+
+        use super::*;
+        use polars::prelude::*;
+
+        #[test]
+        fn test_from_polars() -> Result<()> {
+            let criteria_df: DataFrame = df!(
+                "name"=> &["one", "two"],
+                "weight" => &[1., 1.],
+                "criteria_type" => &[-1., 1.],
+                "pref_function" => &["usual", "ushape"],
+                "q" => &[0., 0.],
+                "p" => &[0., 0.],
+            )?;
+
+            let data_df: DataFrame = df!(
+                "one"=> &[0.8, 0.2, 0.05],
+                "two" => &[0.1, 0.6, 0.4],
+
+            )?;
+
+            let mut p = Prom::from_polars(&data_df, &criteria_df)?;
+            p.compute_prom_ii()?;
+
+            println!("{:#?}", p.prom_ii);
+
+            Ok(())
+        }
+
+        #[test]
+        fn test_from_polars_missing_col() -> Result<()> {
+            let criteria_df: DataFrame = df!(
+                "name"=> &["one", "two"],
+                "weight" => &[1., 1.],
+                "criteria_type" => &[-1., 1.],
+                "pref_function" => &["usual", "ushape"],
+                "q" => &[0., 0.],
+                "p" => &[0., 0.],
+            )?;
+
+            let data_df: DataFrame = df!(
+                "one"=> &[0.8, 0.2, 0.05],
+                "two" => &[0.1, 0.6, 0.4],
+                "three" => &[0.2, 0.5, 0.4],
+
+            )?;
+
+            let mut p = Prom::from_polars(&data_df, &criteria_df)?;
+            p.compute_prom_ii()?;
+
+            println!("{:#?}", p.prom_ii);
+
+            Ok(())
         }
     }
 }
