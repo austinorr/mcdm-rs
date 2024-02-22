@@ -1,3 +1,6 @@
+#![feature(core_intrinsics)]
+#![allow(internal_features)]
+
 //! Fast Promethee I/II computation.
 //!
 

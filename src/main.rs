@@ -2,7 +2,7 @@
 fn run_cli() {
     extern crate clap;
     use clap::Parser;
-    use mcdmrs::prom::{interop, Prom};
+    use mcdmrs::prom::{df_from_csv, FromPolars, Prom};
     extern crate polars;
     use polars::prelude::{DataFrame, NamedFrom, Series};
     use std::path::PathBuf;
@@ -31,30 +31,29 @@ fn run_cli() {
 
     let args: Cli = Cli::parse();
 
-    let mut data_df = interop::polars::df_from_csv(
+    let mut data_df = df_from_csv(
         args.alternatives
             .to_str()
             .expect("failed to convert data path to str"),
     )
     .expect("failed to load data");
 
-    let criteria_df: DataFrame = interop::polars::df_from_csv(
+    let criteria_df: DataFrame = df_from_csv(
         args.criteria
             .to_str()
             .expect("failed to convert criteria path to str"),
     )
     .expect("failed to load criteria");
 
-    let mut p: Prom = interop::polars::prom_from_polars(&data_df, &criteria_df).unwrap();
+    let mut p: Prom = Prom::from_polars(&data_df, &criteria_df).unwrap();
     let now: Instant = Instant::now();
     p.compute_prom_ii().expect("failed to compute prom.");
     let timing = now.elapsed().as_secs_f64();
 
-    let score = Series::new("score", p.prom_ii.as_ref().unwrap().score.clone());
-    let normalized_score = Series::new(
-        "normalized_score",
-        p.prom_ii.as_ref().unwrap().normalized_score.clone(),
-    );
+    let pii = p.prom_ii.unwrap();
+
+    let score = Series::new("score", pii.score.to_vec());
+    let normalized_score = Series::new("normalized_score", pii.normalized_score.to_vec());
     data_df.with_column(score).unwrap();
     data_df.with_column(normalized_score).unwrap();
 

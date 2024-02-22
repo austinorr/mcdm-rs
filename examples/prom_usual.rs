@@ -1,7 +1,8 @@
 use mcdmrs::prom::{
-    types::{Arr, Fl},
+    types::{Fl, Result},
     utils, Prom,
 };
+use ndarray::Array1;
 use rand::{distributions::Uniform, Rng};
 use std::time::Instant;
 
@@ -22,12 +23,11 @@ fn bench(mut p: Prom, iters: usize) {
         _ = p.compute_prom_ii();
         pr_timings.push(now.elapsed().as_secs_f64());
 
-        let weight: Arr = (0..p.criteria.weight.len())
-            .map(|_| rng.sample(range))
-            .collect();
+        let weight =
+            Array1::<Fl>::from_iter((0..p.criteria.weight.len()).map(|_| rng.sample(range)));
 
         let now: Instant = Instant::now();
-        _ = p.re_weight(&weight);
+        _ = p.re_weight(weight.view());
         rw_timings.push(now.elapsed().as_secs_f64());
     }
 
@@ -55,7 +55,7 @@ fn bench(mut p: Prom, iters: usize) {
     println!("total time (s):  {:.2}", (s + rw_s) / 1000.);
 }
 
-fn main() {
+fn main() -> Result<()> {
     use std::env;
     let args: Vec<String> = env::args().collect();
 
@@ -73,6 +73,8 @@ fn main() {
     };
 
     println!("Running Prom with dimensions {}x{}.", n, m);
-    let p: Prom = utils::generate_prom(n, m);
+    let p: Prom = utils::generate_prom(n, m)?;
     bench(p, iters);
+
+    Ok(())
 }
