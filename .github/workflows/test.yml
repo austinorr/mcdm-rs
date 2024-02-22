@@ -26,6 +26,7 @@ jobs:
           make install-rust-coverage
           make coverage-ci
       - name: upload to codecov.io
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           files: "*.lcov"
