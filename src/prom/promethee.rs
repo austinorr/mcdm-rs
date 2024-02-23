@@ -1,47 +1,118 @@
-use super::math::{diff, min_max_norm, mult_axis_0, normalize_vec, sum_axis_0, transpose};
-use super::multicriterion_flow::multicriterion_flow;
-use super::types::{Arr, Criteria, Fl, MCFlowResult, Mat, PromResultI, PromResultII};
-use std::fmt::Error;
+use super::math::{min_max_norm, mult_axis_0, normalize_vec};
+use super::multicriterion_flow::MCFlowResult;
+use super::types::{Fl, Result};
+use ndarray::{Array1, Array2, ArrayView1, ArrayView2, Axis};
 
-pub fn prom_i(pref_matrix_plus_t: &Mat, pref_matrix_minus_t: &Mat, weights: &Arr) -> PromResultI {
-    let phi_plus_matrix: Mat = transpose(mult_axis_0(pref_matrix_plus_t, weights));
-    let phi_minus_matrix: Mat = transpose(mult_axis_0(pref_matrix_minus_t, weights));
+#[derive(Clone, Debug, Default)]
+pub struct Criteria {
+    pub weight: Array1<Fl>,
+    pub criteria_type: Array1<Fl>,
+    pub pref_function: Array1<String>,
+    pub q: Array1<Fl>,
+    pub p: Array1<Fl>,
+}
 
-    PromResultI {
-        phi_plus_score: sum_axis_0(&phi_plus_matrix),
-        phi_minus_score: sum_axis_0(&phi_minus_matrix),
-        phi_plus_matrix,
-        phi_minus_matrix,
+impl Criteria {
+    pub fn new(
+        weight: Array1<Fl>,
+        criteria_type: Array1<Fl>,
+        pref_function: Array1<String>,
+        q: Array1<Fl>,
+        p: Array1<Fl>,
+    ) -> Result<Criteria> {
+        let len = weight.len();
+        if len == criteria_type.len()
+            && len == pref_function.len()
+            && len == q.len()
+            && len == p.len()
+        {
+            Ok(Criteria {
+                weight,
+                criteria_type,
+                pref_function,
+                q,
+                p,
+            })
+        } else {
+            panic!("All members must be of same length!")
+        }
     }
 }
 
-pub fn prom_ii(p: &PromResultI) -> PromResultII {
-    // TODO: use ndarray for a vectorized diff
-    let score: Arr = diff(&p.phi_plus_score, &p.phi_minus_score);
-    let normalized_score = min_max_norm(&score);
+#[derive(Clone, Debug, Default)]
+pub struct PromResultI {
+    pub phi_plus_score: Array1<Fl>,
+    pub phi_minus_score: Array1<Fl>,
+    pub phi_plus_matrix: Array2<Fl>,
+    pub phi_minus_matrix: Array2<Fl>,
+}
 
-    // TODO: use ndarray for a matrix diff
-    let weighted_flow: Mat = p
-        .phi_plus_matrix
-        .iter()
-        .zip(&p.phi_minus_matrix)
-        .map(|(a, b)| diff(a, b))
-        .collect();
+pub fn prom_i(
+    pref_matrix_plus_t: ArrayView2<Fl>,
+    pref_matrix_minus_t: ArrayView2<Fl>,
+    weight: ArrayView1<Fl>,
+) -> Result<PromResultI> {
+    let phi_plus_matrix: Array2<Fl> = mult_axis_0(pref_matrix_plus_t, weight)?.t().to_owned();
+    let phi_minus_matrix: Array2<Fl> = mult_axis_0(pref_matrix_minus_t, weight)?.t().to_owned();
 
-    PromResultII {
+    Ok(PromResultI {
+        phi_plus_score: phi_plus_matrix.sum_axis(Axis(1)),
+        phi_minus_score: phi_minus_matrix.sum_axis(Axis(1)),
+        phi_plus_matrix,
+        phi_minus_matrix,
+    })
+}
+
+impl PromResultI {
+    pub fn new(
+        pref_matrix_plus_t: ArrayView2<Fl>,
+        pref_matrix_minus_t: ArrayView2<Fl>,
+        weight: ArrayView1<Fl>,
+    ) -> Result<Self> {
+        prom_i(pref_matrix_plus_t, pref_matrix_minus_t, weight)
+    }
+}
+
+#[derive(Clone, Debug, Default)]
+pub struct PromResultII {
+    pub score: Array1<Fl>,
+    pub normalized_score: Array1<Fl>,
+    pub weighted_flow: Array2<Fl>,
+}
+
+pub fn prom_ii(p: &PromResultI) -> Result<PromResultII> {
+    let score: Array1<Fl> = &p.phi_plus_score - &p.phi_minus_score;
+    let normalized_score: Array1<Fl> = min_max_norm(score.view());
+    let weighted_flow: Array2<Fl> = &p.phi_plus_matrix - &p.phi_minus_matrix;
+
+    Ok(PromResultII {
         score,
         normalized_score,
         weighted_flow,
+    })
+}
+
+impl PromResultII {
+    pub fn new(p: &PromResultI) -> Result<Self> {
+        prom_ii(p)
     }
 }
 
 #[derive(Clone, Default, Debug)]
 pub struct Prom {
-    pub matrix_t: Mat,
+    pub matrix_t: Array2<Fl>,
     pub criteria: Criteria,
     pub mc_flow: Option<MCFlowResult>,
     pub prom_i: Option<PromResultI>,
     pub prom_ii: Option<PromResultII>,
+}
+
+pub fn re_weight(p: &mut Prom, weight: ArrayView1<Fl>) -> Result<()> {
+    p.criteria.weight = weight.to_owned();
+    p.prom_i = None;
+    p.compute_prom_ii()?;
+
+    Ok(())
 }
 
 impl Prom {
@@ -51,91 +122,88 @@ impl Prom {
     /// # Examples
     ///
     /// ```
-    /// use mcdmrs::prom::Prom;
+    /// use ndarray::array;
+    /// use mcdmrs::prom::{Criteria, Prom};
     /// let mut p: Prom = Prom::new(
-    ///     vec![vec![0.8, 0.2, 0.05], vec![0.1, 0.6, 0.4]],
-    ///     vec![1., 1.],
-    ///     vec![-1., 1.],
-    ///     vec!["usual".to_string(), "usual".to_string()],
-    ///     vec![0., 0.],
-    ///     vec![0., 0.],
-    /// );
+    ///     array![[0.8, 0.2, 0.05], [0.1, 0.6, 0.4]],
+    ///     Criteria::new(
+    ///         array![1., 1.],
+    ///         array![-1., 1.],
+    ///         array!["usual".to_string(), "usual".to_string()],
+    ///         array![0., 0.],
+    ///         array![0., 0.]
+    ///     ).unwrap()
+    /// ).unwrap();
     /// ```
-    pub fn new(
-        matrix_t: Mat,
-        weight: Arr,
-        criteria_type: Arr,
-        pref_function: Vec<String>,
-        q: Arr,
-        p: Arr,
-    ) -> Self {
-        Prom {
-            matrix_t,
-            criteria: Criteria {
-                weight,
-                criteria_type,
-                pref_function,
-                q,
-                p,
-            },
-            mc_flow: None,
-            prom_i: None,
-            prom_ii: None,
+    pub fn new(matrix_t: Array2<Fl>, criteria: Criteria) -> Result<Prom> {
+        let (m, _) = matrix_t.dim();
+
+        if m == criteria.weight.len()
+            && m == criteria.criteria_type.len()
+            && m == criteria.pref_function.len()
+            && m == criteria.q.len()
+            && m == criteria.p.len()
+        {
+            Ok(Prom {
+                matrix_t,
+                criteria,
+                mc_flow: None,
+                prom_i: None,
+                prom_ii: None,
+            })
+        } else {
+            panic!("The 0 dimension of `matrix_t` must be of same length as Criteria members")
         }
     }
 
-    pub fn compute_multicriterion_flow(&mut self) -> Result<(), Error> {
-        let (pref_matrix_plus_t, pref_matrix_minus_t) = multicriterion_flow(
-            &mult_axis_0(&self.matrix_t, &self.criteria.criteria_type),
-            &self.criteria.pref_function,
-            &self.criteria.q,
-            &self.criteria.p,
-        );
+    pub fn compute_multicriterion_flow(&mut self) -> Result<()> {
+        let mat = mult_axis_0(self.matrix_t.view(), self.criteria.criteria_type.view())?;
 
-        self.mc_flow = Some(MCFlowResult {
-            pref_matrix_plus_t,
-            pref_matrix_minus_t,
-        });
+        self.mc_flow = Some(MCFlowResult::new(
+            mat.view(),
+            self.criteria.pref_function.view(),
+            self.criteria.q.view(),
+            self.criteria.p.view(),
+        )?);
 
         Ok(())
     }
 
-    pub fn compute_prom_i(&mut self) -> Result<(), Error> {
-        match self.mc_flow {
-            None => {
-                _ = self.compute_multicriterion_flow();
-                _ = self.compute_prom_i();
+    pub fn compute_prom_i(&mut self) -> Result<()> {
+        match &self.mc_flow {
+            Some(mc) => {
+                self.prom_i = Some(PromResultI::new(
+                    mc.pref_matrix_plus_t.view(),
+                    mc.pref_matrix_minus_t.view(),
+                    normalize_vec(self.criteria.weight.view()).view(),
+                )?);
             }
             _ => {
-                self.prom_i = Some(prom_i(
-                    &self.mc_flow.as_ref().unwrap().pref_matrix_plus_t,
-                    &self.mc_flow.as_ref().unwrap().pref_matrix_minus_t,
-                    &normalize_vec(&self.criteria.weight),
-                ));
+                self.compute_multicriterion_flow()?;
+                self.compute_prom_i()?;
             }
         }
-
         Ok(())
     }
 
-    pub fn compute_prom_ii(&mut self) -> Result<(), Error> {
-        match self.prom_i {
-            None => {
-                _ = self.compute_prom_i();
-                _ = self.compute_prom_ii();
+    pub fn compute_prom_ii(&mut self) -> Result<()> {
+        match &self.prom_i {
+            Some(pi) => {
+                self.prom_ii = Some(PromResultII::new(pi)?);
             }
             _ => {
-                self.prom_ii = Some(prom_ii(self.prom_i.as_ref().unwrap()));
+                self.compute_prom_i()?;
+                self.compute_prom_ii()?;
             }
         }
 
         Ok(())
     }
 
-    pub fn re_weight(&mut self, weight: &[Fl]) -> Result<(), Error> {
-        self.criteria.weight = weight.to_vec();
-        self.prom_i = None;
-        self.compute_prom_ii()
+    pub fn re_weight(&mut self, weight: ArrayView1<Fl>) -> Result<()> {
+        re_weight(self, weight)?;
+
+        Ok(())
     }
 }
 
@@ -144,6 +212,8 @@ impl Prom {
 #[cfg(test)]
 mod test {
     use super::*;
+    use crate::prom::types::FromVec2;
+    use ndarray::array;
 
     #[test]
     fn test_prom() {
@@ -152,13 +222,13 @@ mod test {
         let _p = Prom::default();
 
         let _p: Prom = Prom {
-            matrix_t: vec![vec![0.8, 0.2, 0.5], vec![0.8, 0.2, 0.5]],
+            matrix_t: array![[0.8, 0.2, 0.5], [0.8, 0.2, 0.5]],
             criteria: Criteria {
-                weight: vec![1., 1.],
-                criteria_type: vec![-1., 1.],
-                pref_function: vec!["usual".to_string(), "usual".to_string()],
-                q: vec![0., 0.],
-                p: vec![0., 0.],
+                weight: array![1., 1.],
+                criteria_type: array![-1., 1.],
+                pref_function: array!["usual".to_string(), "usual".to_string()],
+                q: array![0., 0.],
+                p: array![0., 0.],
             },
             mc_flow: None,
             prom_i: None,
@@ -166,13 +236,16 @@ mod test {
         };
 
         let mut p: Prom = Prom::new(
-            vec![vec![0.8, 0.2, 0.05], vec![0.1, 0.6, 0.4]],
-            vec![1., 1.],
-            vec![-1., 1.],
-            vec!["usual".to_string(), "usual".to_string()],
-            vec![0., 0.],
-            vec![0., 0.],
-        );
+            array![[0.8, 0.2, 0.05], [0.1, 0.6, 0.4]],
+            Criteria {
+                weight: array![1., 1.],
+                criteria_type: array![-1., 1.],
+                pref_function: array!["usual".to_string(), "usual".to_string()],
+                q: array![0., 0.],
+                p: array![0., 0.],
+            },
+        )
+        .unwrap();
         println!("test prom new: {:#?}", p);
 
         _ = p.compute_multicriterion_flow();
@@ -180,21 +253,28 @@ mod test {
         _ = p.compute_prom_ii();
         println!("test prom calc: {:#?}", p);
 
-        let score: Arr = p.prom_ii.clone().unwrap().score;
+        let score: Array1<Fl> = p.prom_ii.clone().unwrap().score;
         assert!(all_close!(
             vec![-1., 0.5, 0.5],
             score.clone(),
             rel_tol = 1e-6
         ));
 
-        _ = p.re_weight(&[0.75, 0.25]);
+        _ = p.re_weight(array![0.75, 0.25].view());
         println!("test prom re-weight: {:#?}", p);
 
-        let newscore: Arr = p.prom_ii.clone().unwrap().score;
+        let newscore: Array1<Fl> = p.prom_ii.clone().unwrap().score;
         assert!(!all_close!(newscore.clone(), score.clone(), rel_tol = 1e-6));
     }
 
-    fn get_prom_inputs() -> (Mat, Arr, Arr, Vec<String>, Arr, Arr) {
+    fn get_prom_inputs() -> (
+        Array2<Fl>,
+        Array1<Fl>,
+        Array1<Fl>,
+        Array1<String>,
+        Array1<Fl>,
+        Array1<Fl>,
+    ) {
         let mat = vec![
             vec![-2.51, 9.01, 4.64, 1.97, -6.88, -6.88, -8.84, 7.32],
             vec![2.02, 4.16, -9.59, 9.4, 6.65, -5.75, -6.36, -6.33],
@@ -218,21 +298,65 @@ mod test {
             vec![-7.1, -0.21, 9.71, -5.16, 3.44, 5.23, -5.25, 4.56],
         ];
 
-        let weights: Arr = vec![0.11, 0.157, 0.158, 0.14, 0.061, 0.194, 0.102, 0.078];
+        let weight: Array1<Fl> = array![0.11, 0.157, 0.158, 0.14, 0.061, 0.194, 0.102, 0.078];
 
-        let criteria_types: Arr = vec![-1., -1., 1., 1., -1., 1., -1., 1.];
-        let prefs: Vec<String> = [
+        let criteria_type: Array1<Fl> = array![-1., -1., 1., 1., -1., 1., -1., 1.];
+        let pref_function: Vec<String> = [
             "vshape2", "usual", "ushape", "vshape", "usual", "level", "vshape2", "usual",
         ]
         .map(String::from)
         .to_vec();
 
-        let q: Arr = vec![0.37, 0.95, 0.73, 0.6, 0.16, 0.16, 0.06, 0.87];
-        let p: Arr = vec![0.6, 0.71, 0.02, 0.97, 0.83, 0.21, 0.18, 0.18];
+        let q: Array1<Fl> = array![0.37, 0.95, 0.73, 0.6, 0.16, 0.16, 0.06, 0.87];
+        let p: Array1<Fl> = array![0.6, 0.71, 0.02, 0.97, 0.83, 0.21, 0.18, 0.18];
 
         {
-            (mat, weights, criteria_types, prefs, q, p)
+            (
+                Array2::<Fl>::from_vec2(mat).t().to_owned(),
+                weight,
+                criteria_type,
+                Array1::<String>::from(pref_function),
+                q,
+                p,
+            )
         }
+    }
+
+    #[test]
+    #[should_panic(expected = "must be of same length")]
+    fn test_criteria_errors() {
+        let (_, weight, criteria_type, pref_function, q, p) = get_prom_inputs();
+
+        let mut newq = q.to_vec();
+        newq.push(1.1);
+
+        _ = Criteria::new(
+            weight,
+            criteria_type,
+            pref_function,
+            Array1::<Fl>::from_vec(newq),
+            p,
+        );
+    }
+
+    #[test]
+    #[should_panic(expected = "must be of same length")]
+    fn test_prom_errors() {
+        let (matrix_t, weight, criteria_type, pref_function, q, p) = get_prom_inputs();
+
+        let mut newq = q.to_vec();
+        newq.push(1.1);
+
+        _ = Prom::new(
+            matrix_t,
+            Criteria {
+                weight,
+                criteria_type,
+                pref_function,
+                q: Array1::<Fl>::from_vec(newq),
+                p,
+            },
+        );
     }
 
     #[test]
@@ -240,9 +364,9 @@ mod test {
         use is_close::all_close;
         let (matrix, weights, criteria_types, _prefs, q, p) = get_prom_inputs();
 
-        let prefs = vec!["usual".to_string(); weights.len()];
+        let prefs = Array1::from(vec!["usual".to_string(); weights.len()]);
 
-        let exp_promii: Arr = vec![
+        let exp_promii: Array1<Fl> = array![
             0.06473685,
             -0.20399999,
             -0.07252632,
@@ -265,7 +389,8 @@ mod test {
             0.45147368,
         ];
 
-        let mut p = Prom::new(transpose(matrix), weights, criteria_types, prefs, q, p);
+        let c = Criteria::new(weights, criteria_types, prefs, q, p).unwrap();
+        let mut p = Prom::new(matrix, c).unwrap();
 
         let _ = p.compute_prom_ii();
         let score = p.prom_ii.clone().unwrap().score;
@@ -278,9 +403,9 @@ mod test {
         use is_close::all_close;
         let (matrix, weights, criteria_types, _prefs, q, p) = get_prom_inputs();
 
-        let prefs = vec!["ushape".to_string(); weights.len()];
+        let prefs = Array1::from(vec!["ushape".to_string(); weights.len()]);
 
-        let exp_promii: Arr = vec![
+        let exp_promii: Array1<Fl> = array![
             0.06057895,
             -0.1675263,
             -0.07547368,
@@ -303,7 +428,8 @@ mod test {
             0.41094736,
         ];
 
-        let mut p = Prom::new(transpose(matrix), weights, criteria_types, prefs, q, p);
+        let c = Criteria::new(weights, criteria_types, prefs, q, p).unwrap();
+        let mut p = Prom::new(matrix, c).unwrap();
 
         let _ = p.compute_prom_ii();
         let score = p.prom_ii.clone().unwrap().score;
@@ -316,9 +442,9 @@ mod test {
         use is_close::all_close;
         let (matrix, weights, criteria_types, _prefs, q, p) = get_prom_inputs();
 
-        let prefs = vec!["vshape".to_string(); weights.len()];
+        let prefs = Array1::from(vec!["vshape".to_string(); weights.len()]);
 
-        let exp_promii: Arr = vec![
+        let exp_promii: Array1<Fl> = array![
             0.07147984,
             -0.18886907,
             -0.05906976,
@@ -341,7 +467,8 @@ mod test {
             0.44232639,
         ];
 
-        let mut p = Prom::new(transpose(matrix), weights, criteria_types, prefs, q, p);
+        let c = Criteria::new(weights, criteria_types, prefs, q, p).unwrap();
+        let mut p = Prom::new(matrix, c).unwrap();
 
         let _ = p.compute_prom_ii();
         let score = p.prom_ii.clone().unwrap().score;
@@ -354,9 +481,9 @@ mod test {
         use is_close::all_close;
         let (matrix, weights, criteria_types, _prefs, q, p) = get_prom_inputs();
 
-        let prefs = vec!["vshape2".to_string(); weights.len()];
+        let prefs = Array1::from(vec!["vshape2".to_string(); weights.len()]);
 
-        let exp_promii: Arr = vec![
+        let exp_promii: Array1<Fl> = array![
             0.06942184,
             -0.18717045,
             -0.03388529,
@@ -379,7 +506,8 @@ mod test {
             0.43110296,
         ];
 
-        let mut p = Prom::new(transpose(matrix), weights, criteria_types, prefs, q, p);
+        let c = Criteria::new(weights, criteria_types, prefs, q, p).unwrap();
+        let mut p = Prom::new(matrix, c).unwrap();
 
         let _ = p.compute_prom_ii();
         let score = p.prom_ii.clone().unwrap().score;
@@ -392,9 +520,9 @@ mod test {
         use is_close::all_close;
         let (matrix, weights, criteria_types, _prefs, q, p) = get_prom_inputs();
 
-        let prefs = vec!["level".to_string(); weights.len()];
+        let prefs = Array1::from(vec!["level".to_string(); weights.len()]);
 
-        let exp_promii: Arr = vec![
+        let exp_promii: Array1<Fl> = array![
             0.0705,
             -0.18676315,
             -0.03955264,
@@ -417,7 +545,8 @@ mod test {
             0.43047367,
         ];
 
-        let mut p = Prom::new(transpose(matrix), weights, criteria_types, prefs, q, p);
+        let c = Criteria::new(weights, criteria_types, prefs, q, p).unwrap();
+        let mut p = Prom::new(matrix, c).unwrap();
 
         let _ = p.compute_prom_ii();
         let score = p.prom_ii.clone().unwrap().score;
@@ -430,7 +559,7 @@ mod test {
         use is_close::all_close;
         let (matrix, weights, criteria_types, prefs, q, p) = get_prom_inputs();
 
-        let exp_promii: Arr = vec![
+        let exp_promii: Array1<Fl> = array![
             0.05642106,
             -0.17198806,
             -0.07260072,
@@ -453,7 +582,8 @@ mod test {
             0.43403623,
         ];
 
-        let mut p = Prom::new(transpose(matrix), weights, criteria_types, prefs, q, p);
+        let c = Criteria::new(weights, criteria_types, prefs, q, p).unwrap();
+        let mut p = Prom::new(matrix, c).unwrap();
 
         let _ = p.compute_prom_ii();
         let score = p.prom_ii.clone().unwrap().score;
