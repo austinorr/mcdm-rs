@@ -6,6 +6,9 @@ install-rust-coverage:
 	cargo install rustfilt
 	rustup component add llvm-tools-preview
 
+install-cross:
+	cargo install cross
+
 clean-coverage:
 	find . -name '*.profdata' -exec rm -fr {} +
 	find . -name '*.profraw' -exec rm -fr {} +
@@ -85,3 +88,6 @@ bench:
 
 release:
 	cargo build -r
+
+release-windows:
+	cross build --target x86_64-pc-windows-gnu --release
