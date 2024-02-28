@@ -2,4 +2,4 @@
 //!
 
 /// This module makes mcdm with promethee easy.
-pub mod prom;
+pub use mcdmrs_prom as prom;

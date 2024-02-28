@@ -6,9 +6,9 @@ fn test_happy_path() {
     let mut cmd = Command::cargo_bin("mcdmrs").expect("executable not found");
 
     cmd.arg("--alternatives")
-        .arg("./examples/data/alternatives.csv")
+        .arg("../../examples/data/alternatives.csv")
         .arg("--criteria")
-        .arg("./examples/data/criteria.csv");
+        .arg("../../examples/data/criteria.csv");
 
     cmd.assert().success();
 }

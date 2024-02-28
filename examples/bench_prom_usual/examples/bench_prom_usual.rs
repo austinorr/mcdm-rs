@@ -1,4 +1,4 @@
-use mcdmrs::prom::{
+use mcdmrs_prom::{
     types::{Fl, Result},
     utils, Prom,
 };

@@ -1,8 +1,7 @@
 /// This module make it possible to load your data from a polars dataframe.
 #[cfg(feature = "io")]
 pub mod polars {
-    use crate::prom::{Criteria, Prom, Result};
-    extern crate polars;
+    use super::super::{Criteria, Prom, Result};
     use ndarray::{Array1, Axis};
     use polars::prelude::{
         CsvReader, DataFrame, Float32Type, IndexOrder, PolarsResult, SerReader, Series,

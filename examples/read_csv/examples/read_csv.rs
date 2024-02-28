@@ -1,8 +1,7 @@
-use mcdmrs::prom::types::Result;
+use mcdmrs_prom::types::Result;
 
-#[cfg(all(feature = "io", feature = "cli"))]
 fn prom_from_file() -> Result<()> {
-    use mcdmrs::prom::{df_from_csv, FromPolars, Prom};
+    use mcdmrs_prom::{df_from_csv, FromPolars, Prom};
     use polars::prelude::{DataFrame, NamedFrom, Series};
 
     const TESTFILE: &str = "./examples/data/alternatives.csv";
@@ -38,6 +37,5 @@ fn prom_from_file() -> Result<()> {
 }
 
 fn main() {
-    #[cfg(all(feature = "io", feature = "cli"))]
     prom_from_file().unwrap()
 }

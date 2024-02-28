@@ -157,6 +157,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9d297deb1925b89f2ccc13d7635fa0714f12c87adce1c75356b39ca9b7178567"
 
 [[package]]
+name = "bench_prom_usual"
+version = "0.1.0"
+dependencies = [
+ "mcdmrs-prom",
+ "ndarray",
+ "rand",
+]
+
+[[package]]
 name = "bitflags"
 version = "1.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -748,6 +757,21 @@ version = "0.1.0"
 dependencies = [
  "assert_cmd",
  "clap",
+ "criterion",
+ "is_close",
+ "mcdmrs-prom",
+ "polars",
+]
+
+[[package]]
+name = "mcdmrs-error"
+version = "0.1.0"
+
+[[package]]
+name = "mcdmrs-prom"
+version = "0.1.0"
+dependencies = [
+ "assert_cmd",
  "criterion",
  "is_close",
  "ndarray",
@@ -1414,6 +1438,14 @@ checksum = "1465873a3dfdaa8ae7cb14b4383657caab0b3e8a0aa9ae8e04b044854c8dfce2"
 dependencies = [
  "crossbeam-deque",
  "crossbeam-utils",
+]
+
+[[package]]
+name = "read_csv"
+version = "0.1.0"
+dependencies = [
+ "mcdmrs-prom",
+ "polars",
 ]
 
 [[package]]

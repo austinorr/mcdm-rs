@@ -1,0 +1,9 @@
+[package]
+name = "read_csv"
+version = "0.1.0"
+edition = "2021"
+
+
+[dependencies]
+mcdmrs-prom = { path = "../../crates/mcdmrs-prom", features = ["io"] }
+polars = { workspace = true }

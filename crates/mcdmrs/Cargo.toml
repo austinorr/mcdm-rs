@@ -1,0 +1,22 @@
+[package]
+name = "mcdmrs"
+version = { workspace = true }
+authors = { workspace = true }
+edition = { workspace = true }
+
+
+[dependencies]
+mcdmrs-prom = { workspace = true }
+polars = { workspace = true, optional = true }
+clap = { workspace = true, optional = true }
+
+
+[dev-dependencies]
+criterion = { workspace = true }
+is_close = { workspace = true }
+assert_cmd = { workspace = true }
+
+[features]
+default = ["io", "cli"]
+io = ["mcdmrs-prom/io", "dep:polars"]
+cli = ["dep:clap"]
