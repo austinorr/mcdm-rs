@@ -10,8 +10,8 @@ install-cross:
 	cargo install cross
 
 clean-coverage:
-	find . -name '*.profdata' -exec rm -fr {} +
-	find . -name '*.profraw' -exec rm -fr {} +
+	find . -wholename '**/*.profdata' -exec rm -fr {} +
+	find . -wholename '**/*.profraw' -exec rm -fr {} +
 	find . -name '*.lcov' -exec rm -fr {} +
 
 clean-perf:
@@ -55,9 +55,10 @@ LLVM_IGNORE_EXTERNAL = --ignore-filename-regex=/.cargo/registry \
 RUSTC_SYSROOT=$(shell rustc --print sysroot)
 LLVM_PROFDATA=$(shell find $(RUSTC_SYSROOT) -name llvm-profdata)
 LLVM_COV=$(shell find $(RUSTC_SYSROOT) -name llvm-cov)
+PROFRAW=$(shell find -wholename **/default*.profraw)
 
 cov-merge:
-	$(LLVM_PROFDATA) merge -sparse default_*.profraw -o rust_coverage.profdata
+	$(LLVM_PROFDATA) merge -sparse -o rust_coverage.profdata $(PROFRAW)
 
 cov-report: cov-merge
 	$(LLVM_COV) report $(BINARIES) --instr-profile=rust_coverage.profdata \
