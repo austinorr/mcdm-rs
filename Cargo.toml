@@ -1,33 +1,32 @@
-[package]
-name = "mcdmrs"
+[workspace]
+members = ["crates/*", "examples/*"]
+resolver = "2"
+exclude = ["examples/data"]
+default-members = ["crates/*", "examples/*"]
+
+[workspace.package]
 version = "0.1.0"
 edition = "2021"
+authors = ["Austin Orr <austinmartinorr@gmail.com>"]
 
-[dependencies]
+[workspace.dependencies]
 polars = { version = "0.37.0", default-features = false, features = [
     "csv",
     "fmt",
     "ndarray",
-], optional = true }
-clap = { version = "4.5.1", features = ["derive"], optional = true }
+] }
+clap = { version = "4.5.1", features = ["derive"] }
 rand = "0.8.5"
 rayon = "1.8.1"
 ndarray = { version = "0.15.6", features = ["rayon"] }
 
-[features]
-default = ["io", "cli"]
-io = ["dep:polars"]
-cli = ["dep:clap"]
-
-[dev-dependencies]
 criterion = "0.5.1"
 is_close = "0.1.3"
 assert_cmd = "2.0.13"
 
+mcdmrs = { version = "0.1.0", path = "crates/mcdmrs" }
+mcdmrs-prom = { version = "0.1.0", path = "crates/mcdmrs-prom" }
+
 [profile.release]
 lto = "thin"
 strip = true
-
-[[bench]]
-name = "bench_main"
-harness = false

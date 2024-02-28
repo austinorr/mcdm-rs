@@ -1,0 +1,10 @@
+[package]
+name = "bench_prom_usual"
+version = "0.1.0"
+edition = "2021"
+
+
+[dependencies]
+mcdmrs-prom = { path = "../../crates/mcdmrs-prom" }
+ndarray = { workspace = true }
+rand = { workspace = true }

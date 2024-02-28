@@ -1,9 +1,7 @@
 #[cfg(all(feature = "io", feature = "cli"))]
 fn run_cli() {
-    extern crate clap;
     use clap::Parser;
     use mcdmrs::prom::{df_from_csv, FromPolars, Prom};
-    extern crate polars;
     use polars::prelude::{DataFrame, NamedFrom, Series};
     use std::path::PathBuf;
     use std::time::Instant;

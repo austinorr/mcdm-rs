@@ -1,4 +1,4 @@
-use crate::prom::{
+use super::{
     types::{Fl, FromVec2, Mat, Result},
     Criteria, Prom,
 };

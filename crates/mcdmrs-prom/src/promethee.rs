@@ -187,8 +187,8 @@ impl Prom {
     }
 
     pub fn compute_prom_ii(&mut self) -> Result<()> {
-        match &self.prom_i {
-            Some(pi) => {
+        match (&self.mc_flow, &self.prom_i) {
+            (Some(_), Some(pi)) => {
                 self.prom_ii = Some(PromResultII::new(pi)?);
             }
             _ => {
@@ -211,8 +211,8 @@ impl Prom {
 #[allow(clippy::excessive_precision)]
 #[cfg(test)]
 mod test {
+    use super::super::types::FromVec2;
     use super::*;
-    use crate::prom::types::FromVec2;
     use ndarray::array;
 
     #[test]

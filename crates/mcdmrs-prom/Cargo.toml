@@ -1,0 +1,28 @@
+[package]
+name = "mcdmrs-prom"
+version = { workspace = true }
+authors = { workspace = true }
+edition = { workspace = true }
+
+
+[dependencies]
+ndarray = { workspace = true }
+polars = { workspace = true, optional = true }
+rand = { workspace = true }
+rayon = { workspace = true }
+
+
+[dev-dependencies]
+criterion = { workspace = true }
+is_close = { workspace = true }
+assert_cmd = { workspace = true }
+
+
+[features]
+io = ["dep:polars"]
+
+
+[[bench]]
+# path = "../../benches/bench_main.rs"
+name = "bench_main"
+harness = false

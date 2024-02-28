@@ -1,6 +1,6 @@
 use criterion::{criterion_group, Criterion};
-use mcdmrs::prom::types::Fl;
-use mcdmrs::prom::unicriterion_flow::unicriterion_flow_usual;
+use mcdmrs_prom::types::Fl;
+use mcdmrs_prom::unicriterion_flow::unicriterion_flow_usual;
 use ndarray::Array1;
 use rand::{distributions::Uniform, Rng};
 
