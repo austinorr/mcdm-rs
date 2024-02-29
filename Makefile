@@ -36,7 +36,7 @@ build-python: clean
 release-python: clean clean-so
 	maturin develop -m py-mcdmrs/Cargo.toml --release
 
-coverage-python: build-python
+coverage-python:
 	pytest --cov
 
 format:
