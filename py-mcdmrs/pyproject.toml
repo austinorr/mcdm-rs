@@ -1,0 +1,18 @@
+[build-system]
+requires = ["maturin>=1.0,<2.0"]
+build-backend = "maturin"
+
+
+[project]
+name = "mcdmrs"
+description = "Taking python to the prom -- fast. High performance Multi-Criterion Decision Making (MCDM) Tools written in rust for 🚀"
+dependencies = ["numpy"]
+authors = [{ name = "Austin Orr", email = "austinmartinorr@gmail.com" }]
+requires-python = ">=3.10"
+
+[project.optional-dependencies]
+test = ["pytest>=7.4", "pytest-cov>=4.1"]
+dev = ["mcdmrs[test]", "pre-commit>=3.3.3,<4.0.0", "ruff>=0.1.4"]
+
+[tool.maturin]
+module-name = "mcdmrs._mcdmrs"

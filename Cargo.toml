@@ -1,5 +1,5 @@
 [workspace]
-members = ["crates/*", "examples/*"]
+members = ["crates/*", "examples/*", "py-mcdmrs"]
 resolver = "2"
 exclude = ["examples/data"]
 default-members = ["crates/*", "examples/*"]
