@@ -22,20 +22,37 @@ clean-cargo:
 	cargo clean --profile test
 	cargo clean --release
 
+clean-so:
+	find . -wholename './py-mcdmrs/**/*.so' -exec rm -f {} +
+
 clean: clean-coverage clean-perf
 
 build-coverage: clean
 	RUSTFLAGS="-C instrument-coverage" cargo test --tests
 
+build-python: clean
+	maturin develop -m py-mcdmrs/Cargo.toml
+
+release-python: clean clean-so
+	maturin develop -m py-mcdmrs/Cargo.toml --release
+
+coverage-python: build-python
+	pytest --cov
+
 format:
 	cargo fmt
-
+	
 lint:
 	cargo fmt --version
 	cargo fmt --all -- --check
 	cargo clippy --version
 	cargo clippy
 	cargo doc --no-deps
+
+lint-python: lint
+	ruff check . --fix
+	ruff format . --diff
+	pre-commit run --all-files
 
 dBINARIES = $(eval dBINARIES := $$(shell \
 	RUSTFLAGS="-C instrument-coverage" \
@@ -63,7 +80,7 @@ cov-merge:
 cov-report: cov-merge
 	$(LLVM_COV) report $(BINARIES) --instr-profile=rust_coverage.profdata \
 		$(LLVM_IGNORE_EXTERNAL)
-		
+
 cov-show: cov-merge
 	rm -fr htmlcov/
 	$(LLVM_COV) show $(BINARIES) --instr-profile=rust_coverage.profdata \
