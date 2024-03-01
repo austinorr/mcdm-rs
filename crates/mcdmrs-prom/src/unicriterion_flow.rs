@@ -81,7 +81,14 @@ mod test {
 
                 let mut plus = Array1::<Fl>::from_vec(vec![0.0; array.len()]);
                 let mut minus = Array1::<Fl>::from_vec(vec![0.0; array.len()]);
-                _unicriterion_flow(&Array1::<Fl>::from_vec(array).view(), &mut plus.as_slice_mut().unwrap(), &mut minus.as_slice_mut().unwrap(), &func, &q, &p);
+                _unicriterion_flow(
+                    &Array1::<Fl>::from_vec(array).view(),
+                    &mut plus.as_slice_mut().unwrap(),
+                    &mut minus.as_slice_mut().unwrap(),
+                    &func,
+                    &q,
+                    &p,
+                );
                 assert_eq!(expected, (plus.to_vec(), minus.to_vec()));
             }
         )*
