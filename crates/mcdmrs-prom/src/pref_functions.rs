@@ -2,43 +2,35 @@ use super::types::{FPref, Fl};
 
 const REL_TOL: Fl = 1e-7;
 
-#[inline(always)]
 fn lhs(a: &Fl, b: &Fl) -> Fl {
     (a - b).abs()
 }
 
-#[inline(always)]
 fn rhs(a: &Fl, b: &Fl) -> Fl {
     REL_TOL * a.abs().max(b.abs())
 }
 
-#[inline(always)]
 fn f_isclose(a: &Fl, b: &Fl) -> bool {
     lhs(a, b) <= rhs(a, b)
 }
 
-#[inline(always)]
 fn gt(a: &Fl, b: &Fl) -> bool {
     !f_isclose(a, b) && (a > b)
 }
 
-#[inline(always)]
 fn lt(a: &Fl, b: &Fl) -> bool {
     !f_isclose(a, b) && (a < b)
 }
 
 #[allow(dead_code)]
-#[inline(always)]
 fn ge(a: &Fl, b: &Fl) -> bool {
     f_isclose(a, b) || (a > b)
 }
 
-#[inline(always)]
 fn le(a: &Fl, b: &Fl) -> bool {
     f_isclose(a, b) || (a < b)
 }
 
-#[inline(always)]
 pub fn usual(d: &Fl, _q: &Fl, _p: &Fl) -> Fl {
     if gt(d, &0.0) {
         1.0
@@ -47,7 +39,6 @@ pub fn usual(d: &Fl, _q: &Fl, _p: &Fl) -> Fl {
     }
 }
 
-#[inline(always)]
 pub fn ushape(d: &Fl, q: &Fl, _p: &Fl) -> Fl {
     if gt(d, q) {
         1.0
@@ -56,7 +47,6 @@ pub fn ushape(d: &Fl, q: &Fl, _p: &Fl) -> Fl {
     }
 }
 
-#[inline(always)]
 pub fn vshape(d: &Fl, _q: &Fl, p: &Fl) -> Fl {
     if gt(d, &0.0) && le(d, p) {
         d / p
@@ -67,7 +57,6 @@ pub fn vshape(d: &Fl, _q: &Fl, p: &Fl) -> Fl {
     }
 }
 
-#[inline(always)]
 pub fn vshape2(d: &Fl, q: &Fl, p: &Fl) -> Fl {
     if lt(q, d) && le(d, p) {
         (d - q) / (p - q)
@@ -78,7 +67,6 @@ pub fn vshape2(d: &Fl, q: &Fl, p: &Fl) -> Fl {
     }
 }
 
-#[inline(always)]
 pub fn level(d: &Fl, q: &Fl, p: &Fl) -> Fl {
     if lt(q, d) && le(d, p) {
         0.5
