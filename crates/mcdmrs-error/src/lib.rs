@@ -1,1 +1,10 @@
-pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
+pub use anyhow::Result;
+use thiserror::Error;
+
+#[derive(Error, Debug)]
+pub enum MCDMRSError {
+    #[error("ERROR: {0}")]
+    Error(String),
+    // #[error(transparent)]
+    // Other(#[from] anyhow::Error),
+}

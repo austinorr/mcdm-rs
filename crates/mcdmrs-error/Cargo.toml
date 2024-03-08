@@ -1,5 +1,9 @@
 [package]
 name = "mcdmrs-error"
-version = { workspace = true }
-authors = { workspace = true }
-edition = { workspace = true }
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+thiserror.workspace = true
