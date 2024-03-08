@@ -10,6 +10,8 @@ edition = "2021"
 authors = ["Austin Orr <austinmartinorr@gmail.com>"]
 
 [workspace.dependencies]
+anyhow = "1.0.80"
+thiserror = "1.0.57"
 polars = { version = "0.37.0", default-features = false, features = [
     "csv",
     "fmt",
@@ -25,6 +27,7 @@ is_close = "0.1.3"
 assert_cmd = "2.0.13"
 
 mcdmrs = { version = "0.1.0", path = "crates/mcdmrs" }
+mcdmrs-error = { version = "0.1.0", path = "crates/mcdmrs-error" }
 mcdmrs-prom = { version = "0.1.0", path = "crates/mcdmrs-prom" }
 
 [profile.release]
