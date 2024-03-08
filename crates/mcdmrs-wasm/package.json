@@ -1,0 +1,17 @@
+{
+  "name": "mcdmrs-wasm",
+  "version": "1.0.0",
+  "main": "vite.config.js",
+  "type": "module",
+  "scripts": {
+    "build:wasm": "RUSTFLAGS='-C target-feature=+atomics,+bulk-memory,+mutable-globals' rustup run nightly-2024-02-22 wasm-pack build --target web --out-dir ./www/pkg ./ -- -Z build-std=panic_abort,std",
+    "dev": "vite",
+    "build": "npm run build:wasm && vite build"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "vite": "^5.1.5"
+  }
+}

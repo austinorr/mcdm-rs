@@ -33,6 +33,12 @@ build-coverage: clean
 build-python: clean
 	maturin develop -m py-mcdmrs/Cargo.toml
 
+build-wasm:
+	RUSTFLAGS='-C target-feature=+atomics,+bulk-memory,+mutable-globals' \
+	rustup run nightly-2024-02-22 \
+	wasm-pack build --target web -d www/pkg crates/mcdmrs-wasm \
+	-- -Z build-std=panic_abort,std
+
 release-python: clean clean-so
 	maturin develop -m py-mcdmrs/Cargo.toml --release
 
@@ -109,3 +115,4 @@ release:
 
 release-windows:
 	cross build --target x86_64-pc-windows-gnu --release
+	

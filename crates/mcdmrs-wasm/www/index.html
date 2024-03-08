@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8" />
+    <title>hello-wasm example</title>
+    <link rel="stylesheet" href="./css/style.css" />
+    <script src="enable-threads.js"></script>
+    <script type="module">
+      import { main, load_data } from "./index.js";
+      main().then();
+      window.load_data = load_data;
+    </script>
+  </head>
+  <body>
+    <div>
+      <div id="load_data_buttons"></div>
+      <button id="load_data_10" onclick="load_data(10)">
+        Load 10 Alternatives
+      </button>
+      <button id="load_data_1000" onclick="load_data(1000)">
+        Load 1,000 Alternatives
+      </button>
+      <button id="load_data_10000" onclick="load_data(10000)">
+        Load 10,000 Data
+      </button>
+      <div id="data_summary"></div>
+    </div>
+    <div>
+      <button id="compute_prom_ii">Compute Prom II</button>
+      <div id="slidecontainer"></div>
+    </div>
+    <div id="results_table"></div>
+  </body>
+</html>
