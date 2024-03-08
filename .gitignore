@@ -48,3 +48,5 @@ coverage.xml
 .pytest_cache/
 memray-results/
 .ruff_cache/
+
+node_modules

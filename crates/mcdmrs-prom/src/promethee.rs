@@ -1,6 +1,6 @@
 use super::math::{min_max_norm, mult_axis_0, normalize_vec};
 use super::multicriterion_flow::MCFlowResult;
-use super::types::{Fl, Result};
+use super::types::{Fl, MCDMRSError, Result};
 use ndarray::{Array1, Array2, ArrayView1, ArrayView2, Axis};
 
 #[derive(Clone, Debug, Default)]
@@ -21,11 +21,12 @@ impl Criteria {
         p: Array1<Fl>,
     ) -> Result<Criteria> {
         let len = weight.len();
-        if len == criteria_type.len()
+        let is_valid: bool = len == criteria_type.len()
             && len == pref_function.len()
             && len == q.len()
-            && len == p.len()
-        {
+            && len == p.len();
+
+        if is_valid {
             Ok(Criteria {
                 weight,
                 criteria_type,
@@ -34,7 +35,7 @@ impl Criteria {
                 p,
             })
         } else {
-            panic!("All members must be of same length!")
+            Err(MCDMRSError::Error("All members must be of same length!".to_string()).into())
         }
     }
 }
@@ -138,12 +139,13 @@ impl Prom {
     pub fn new(matrix_t: Array2<Fl>, criteria: Criteria) -> Result<Prom> {
         let (m, _) = matrix_t.dim();
 
-        if m == criteria.weight.len()
+        let is_valid = m == criteria.weight.len()
             && m == criteria.criteria_type.len()
             && m == criteria.pref_function.len()
             && m == criteria.q.len()
-            && m == criteria.p.len()
-        {
+            && m == criteria.p.len();
+
+        if is_valid {
             Ok(Prom {
                 matrix_t,
                 criteria,
@@ -152,7 +154,11 @@ impl Prom {
                 prom_ii: None,
             })
         } else {
-            panic!("The 0 dimension of `matrix_t` must be of same length as Criteria members")
+            Err(MCDMRSError::Error(
+                "The 0 dimension of `matrix_t` must be of same length as Criteria members"
+                    .to_string(),
+            )
+            .into())
         }
     }
 

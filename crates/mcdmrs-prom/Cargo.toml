@@ -6,6 +6,7 @@ edition = { workspace = true }
 
 
 [dependencies]
+mcdmrs-error = { workspace = true }
 ndarray = { workspace = true }
 polars = { workspace = true, optional = true }
 rand = { workspace = true }
@@ -23,6 +24,5 @@ io = ["dep:polars"]
 
 
 [[bench]]
-# path = "../../benches/bench_main.rs"
 name = "bench_main"
 harness = false
