@@ -1,4 +1,4 @@
-use mcdmrs_prom::types::Result;
+use mcdmrs_prom::types::{MCDMRSError, Result};
 
 fn prom_from_file() -> Result<()> {
     use mcdmrs_prom::{df_from_csv, FromPolars, Prom};
@@ -22,7 +22,9 @@ fn prom_from_file() -> Result<()> {
     let mut p: Prom = Prom::from_polars(&data_df, &criteria_df)?;
     p.compute_prom_ii()?;
 
-    let pii = p.prom_ii.ok_or("Could not calculate Prom II")?;
+    let pii = p.prom_ii.ok_or(MCDMRSError::Error(
+        "Could not calculate Prom II".to_string(),
+    ))?;
 
     let score = Series::new("score", pii.score.to_vec());
     let normalized_score = Series::new("normalized_score", pii.normalized_score.to_vec());
