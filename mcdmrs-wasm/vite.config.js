@@ -5,6 +5,7 @@ const workerImportMetaUrlRE =
 
 export default defineConfig({
   root: "www",
+  base: "",
   worker: {
     format: "es",
     // https://github.com/vitejs/vite/issues/7015
