@@ -124,7 +124,7 @@ impl Prom {
     ///
     /// ```
     /// use ndarray::array;
-    /// use mcdmrs::prom::{Criteria, Prom};
+    /// use mcdmrs_prom::{Criteria, Prom};
     /// let mut p: Prom = Prom::new(
     ///     array![[0.8, 0.2, 0.05], [0.1, 0.6, 0.4]],
     ///     Criteria::new(
@@ -329,31 +329,32 @@ mod test {
     }
 
     #[test]
-    #[should_panic(expected = "must be of same length")]
+    // #[should_panic(expected = "must be of same length")]
     fn test_criteria_errors() {
         let (_, weight, criteria_type, pref_function, q, p) = get_prom_inputs();
 
         let mut newq = q.to_vec();
         newq.push(1.1);
 
-        _ = Criteria::new(
+        let result = Criteria::new(
             weight,
             criteria_type,
             pref_function,
             Array1::<Fl>::from_vec(newq),
             p,
         );
+
+        assert!(result.is_err(), "should not succeed");
     }
 
     #[test]
-    #[should_panic(expected = "must be of same length")]
     fn test_prom_errors() {
         let (matrix_t, weight, criteria_type, pref_function, q, p) = get_prom_inputs();
 
         let mut newq = q.to_vec();
         newq.push(1.1);
 
-        _ = Prom::new(
+        let result = Prom::new(
             matrix_t,
             Criteria {
                 weight,
@@ -363,6 +364,8 @@ mod test {
                 p,
             },
         );
+
+        assert!(result.is_err(), "should not succeed");
     }
 
     #[test]

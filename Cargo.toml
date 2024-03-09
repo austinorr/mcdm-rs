@@ -1,5 +1,5 @@
 [workspace]
-members = ["crates/*", "examples/*", "py-mcdmrs"]
+members = ["crates/*", "examples/*", "py-mcdmrs", "mcdmrs-wasm"]
 resolver = "2"
 exclude = ["examples/data"]
 default-members = ["crates/*", "examples/*"]
@@ -21,9 +21,6 @@ clap = { version = "4.5.1", features = ["derive"] }
 rand = "0.8.5"
 rayon = "1.8.1"
 ndarray = { version = "0.15.6", features = ["rayon"] }
-getrandom = { version = "0.2.12", features = ["js"] }
-wasm-bindgen = "0.2.91"
-wasm-bindgen-rayon = "1.2.1"
 
 criterion = "0.5.1"
 is_close = "0.1.3"
@@ -32,7 +29,7 @@ assert_cmd = "2.0.13"
 mcdmrs = { version = "0.1.0", path = "crates/mcdmrs" }
 mcdmrs-error = { version = "0.1.0", path = "crates/mcdmrs-error" }
 mcdmrs-prom = { version = "0.1.0", path = "crates/mcdmrs-prom" }
-mcdmrs-wasm = { version = "0.1.0", path = "crates/mcdmrs-wasm" }
+# mcdmrs-wasm = { version = "0.1.0", path = "crates/mcdmrs-wasm" }
 
 [profile.release]
 lto = "thin"

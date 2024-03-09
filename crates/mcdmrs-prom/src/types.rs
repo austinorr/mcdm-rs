@@ -1,6 +1,6 @@
 use ndarray::{Array2, Axis};
 
-pub use mcdmrs_error::{MCDMRSError, Result};
+pub use mcdmrs_error::{AnyError, MCDMRSError, Result};
 pub type Fl = f32;
 pub type Arr = Vec<Fl>;
 pub type Mat = Vec<Arr>;
