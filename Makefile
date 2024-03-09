@@ -36,7 +36,7 @@ build-python: clean
 build-wasm:
 	RUSTFLAGS='-C target-feature=+atomics,+bulk-memory,+mutable-globals' \
 	rustup run nightly-2024-02-22 \
-	wasm-pack build --target web -d www/pkg crates/mcdmrs-wasm \
+	wasm-pack build --target web -d www/pkg ./mcdmrs-wasm \
 	-- -Z build-std=panic_abort,std
 
 release-python: clean clean-so

@@ -1,4 +1,4 @@
-pub use anyhow::Result;
+pub use anyhow::{Error as AnyError, Result};
 use thiserror::Error;
 
 #[derive(Error, Debug)]
