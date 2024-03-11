@@ -1,8 +1,13 @@
 [workspace]
-members = ["crates/*", "examples/*", "py-mcdmrs", "mcdmrs-wasm"]
+members = ["crates/*", "examples/*"]
 resolver = "2"
 exclude = ["examples/data"]
-default-members = ["crates/*", "examples/*"]
+default-members = [
+    "crates/mcdmrs",
+    "crates/mcdmrs-error",
+    "crates/mcdmrs-prom",
+    "examples/*",
+]
 
 [workspace.package]
 version = "0.1.0"
@@ -29,7 +34,7 @@ assert_cmd = "2.0.13"
 mcdmrs = { version = "0.1.0", path = "crates/mcdmrs" }
 mcdmrs-error = { version = "0.1.0", path = "crates/mcdmrs-error" }
 mcdmrs-prom = { version = "0.1.0", path = "crates/mcdmrs-prom" }
-# mcdmrs-wasm = { version = "0.1.0", path = "crates/mcdmrs-wasm" }
+mcdmrs-wasm = { version = "0.1.0", path = "crates/mcdmrs-wasm" }
 
 [profile.release]
 lto = "thin"

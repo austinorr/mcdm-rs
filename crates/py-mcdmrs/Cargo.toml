@@ -7,7 +7,6 @@ edition = "2021"
 name = "mcdmrs"
 crate-type = ["cdylib"]
 
-
 [dependencies]
 mcdmrs-prom = { workspace = true }
 pyo3 = { version = "0.20", features = ["extension-module"] }
