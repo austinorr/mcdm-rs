@@ -55,12 +55,9 @@ jobs:
           python-version: "3.11"
       - name: Build Python
         run: |
-          pip install --upgrade uv
-          uv venv
-          uv pip install -e crates/py-mcdmrs[test]
+          pip install crates/py-mcdmrs[test]
       - name: Test Coverage
         run: |
-          source ../.venv/bin/activate
           make coverage-python
       - name: upload to codecov.io
         uses: codecov/codecov-action@v4
