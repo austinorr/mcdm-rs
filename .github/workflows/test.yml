@@ -55,7 +55,8 @@ jobs:
           python-version: "3.11"
       - name: Build Python
         run: |
-          pip install uv
+          pip install --upgrade uv
+          uv venv
           uv pip install -e crates/py-mcdmrs[test]
       - name: Test Coverage
         run: |
