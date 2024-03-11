@@ -1,6 +1,6 @@
 import numpy
 
-from mcdmrs import multicriterion_flow
+from ..prom.multicriterion_flow import multicriterion_flow
 
 
 def make_prom_inputs(
@@ -15,16 +15,21 @@ def make_prom_inputs(
 
 
 def test_it():
-    mat_t = numpy.array([[0.8, 0.2, 0.5], [0.8, 0.2, 0.5]])  # // array
+    mat_t = numpy.array([[0.8, 0.2, 0.5], [0.8, 0.2, 0.5]]).T  # // array
+    types = numpy.array([1, 1])
     prefs = numpy.array(["usual", "usual"])
     q = numpy.array([0.0, 0.0])
     p = numpy.array([0.0, 0.0])
 
     plus, minus = multicriterion_flow(
-        mat_t.astype("float32"), prefs, q.astype("float32"), p.astype("float32")
+        mat_t.astype("float32"),
+        types,
+        prefs,
+        q.astype("float32"),
+        p.astype("float32"),
     )
-    exp_plus = numpy.array([[1.0, 0.0, 0.5], [1.0, 0.0, 0.5]])
-    exp_minus = numpy.array([[0.0, 1.0, 0.5], [0.0, 1.0, 0.5]])
+    exp_plus = numpy.array([[1.0, 0.0, 0.5], [1.0, 0.0, 0.5]]).T
+    exp_minus = numpy.array([[0.0, 1.0, 0.5], [0.0, 1.0, 0.5]]).T
 
     assert numpy.abs(plus - exp_plus).sum() <= 1e-6, (plus, exp_plus)
     assert numpy.abs(minus - exp_minus).sum() <= 1e-6, (minus, exp_minus)
@@ -59,28 +64,31 @@ def test_multicriterion_flow():
     weight = numpy.array([0.11, 0.157, 0.158, 0.14, 0.061, 0.194, 0.102, 0.078])
 
     criteria_type = numpy.array([-1.0, -1.0, 1.0, 1.0, -1.0, 1.0, -1.0, 1.0])
-    pref_function = [
-        "vshape2",
-        "usual",
-        "ushape",
-        "vshape",
-        "usual",
-        "level",
-        "vshape2",
-        "usual",
-    ]
+    pref_function = numpy.array(
+        [
+            "vshape2",
+            "usual",
+            "ushape",
+            "vshape",
+            "usual",
+            "level",
+            "vshape2",
+            "usual",
+        ]
+    )
 
     q = numpy.array([0.37, 0.95, 0.73, 0.6, 0.16, 0.16, 0.06, 0.87])
     p = numpy.array([0.6, 0.71, 0.02, 0.97, 0.83, 0.21, 0.18, 0.18])
 
     plus_t, minus_t = multicriterion_flow(
-        (mat * criteria_type).astype("float32").T,
+        mat,
+        criteria_type,
         pref_function,
-        q.astype("float32"),
-        p.astype("float32"),
+        q,
+        p,
     )
 
-    score = (plus_t.T * weight).sum(axis=1) - (minus_t.T * weight).sum(axis=1)
+    score = (plus_t * weight).sum(axis=1) - (minus_t * weight).sum(axis=1)
 
     exp_promii = numpy.array(
         [
@@ -114,13 +122,14 @@ def test_mc_flow_timing():
     mat, weight, types = make_prom_inputs(10_000, 8)
 
     plus_t, minus_t = multicriterion_flow(
-        (mat * types).astype("float32").T,
+        mat,
+        types,
         ["usual"] * mat.shape[1],
         numpy.zeros(mat.shape[1], dtype="float32"),
         numpy.zeros(mat.shape[1], dtype="float32"),
     )
 
-    score = (plus_t.T * weight).sum(axis=1) - (minus_t.T * weight).sum(axis=1)
+    score = (plus_t * weight).sum(axis=1) - (minus_t * weight).sum(axis=1)
 
     assert (
         numpy.abs(
