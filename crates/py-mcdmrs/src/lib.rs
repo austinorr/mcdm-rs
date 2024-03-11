@@ -9,7 +9,7 @@ use mcdmrs_prom::types::Fl;
 fn _mcdmrs<'py>(_py: Python<'py>, m: &'py PyModule) -> PyResult<()> {
     // wrapper of `multicriterion_flow`
     #[pyfn(m)]
-    #[pyo3(name = "multicriterion_flow")]
+    #[pyo3(name = "_multicriterion_flow")]
     fn multicriterion_flow_py<'py>(
         py: Python<'py>,
         matrix_t: PyReadonlyArray2<'py, Fl>,

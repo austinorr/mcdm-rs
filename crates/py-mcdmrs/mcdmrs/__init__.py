@@ -1,1 +1,1 @@
-from ._mcdmrs import multicriterion_flow as multicriterion_flow
+from .prom.multicriterion_flow import multicriterion_flow as multicriterion_flow
