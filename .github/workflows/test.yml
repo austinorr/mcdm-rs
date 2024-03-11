@@ -60,6 +60,7 @@ jobs:
           uv pip install -e crates/py-mcdmrs[test]
       - name: Test Coverage
         run: |
+          source ../.venv/bin/activate
           make coverage-python
       - name: upload to codecov.io
         uses: codecov/codecov-action@v4
