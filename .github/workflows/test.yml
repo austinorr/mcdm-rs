@@ -55,7 +55,7 @@ jobs:
           python-version: "3.11"
       - name: Build Python
         run: |
-          pip install crates/py-mcdmrs[test]
+          pip install -e crates/py-mcdmrs[test]
       - name: Test Coverage
         run: |
           make coverage-python

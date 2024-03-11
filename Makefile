@@ -42,7 +42,7 @@ clean-cargo:
 	cargo clean --release
 
 clean-so:
-	find . -wholename './py-mcdmrs/**/*.so' -exec rm -f {} +
+	find . -wholename '**/py-mcdmrs/**/*.so' -exec rm -f {} +
 
 clean: clean-coverage clean-perf clean-so
 
@@ -117,7 +117,7 @@ release-python: clean clean-so
 	maturin develop -m crates/py-mcdmrs/Cargo.toml --release
 
 coverage-python:
-	pytest --cov crates/py-mcdmrs/tests
+	pytest crates/py-mcdmrs/tests --cov
 
 lint-python: lint
 	ruff check .

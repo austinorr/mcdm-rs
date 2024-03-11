@@ -1,6 +1,6 @@
 import numpy
 
-from ..prom.multicriterion_flow import multicriterion_flow
+from mcdmrs import multicriterion_flow
 
 
 def make_prom_inputs(
