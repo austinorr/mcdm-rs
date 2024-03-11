@@ -17,7 +17,7 @@ jobs:
           cargo fmt --all -- --check
           cargo clippy --no-deps
 
-  test_coverage:
+  test_coverage_rust:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -30,3 +30,37 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: "./mcdmrs.lcov"
+
+  lint_python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Build Python
+        run: |
+          pip install ruff
+      - name: Lint
+        run: |
+          ruff check .
+          ruff format . --diff
+
+  test_coverage_python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Build Python
+        run: |
+          pip install uv
+          uv pip install -e crates/py-mcdmrs[test]
+      - name: Test Coverage
+        run: |
+          make coverage-python
+      - name: upload to codecov.io
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
