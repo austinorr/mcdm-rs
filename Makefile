@@ -2,64 +2,6 @@ MAKEFLAGS += --silent
 .PHONY: install-rust-coverage clean-coverage clean-perf clean build-coverage format lint cov-merge cov-report cov-show coverage
 .DEFAULT_GOAL := all
 
-install-rust-coverage:
-	cargo install rustfilt
-	rustup component add llvm-tools-preview
-
-install-cross:
-	cargo install cross
-
-clean-coverage:
-	find . -wholename '**/*.profdata' -exec rm -fr {} +
-	find . -wholename '**/*.profraw' -exec rm -fr {} +
-	find . -name '*.lcov' -exec rm -fr {} +
-
-clean-perf:
-	find . -name '*perf.data*' -exec rm -fr {} +
-	find . -name '*flame*.svg' -exec rm -fr {} +
-
-clean-cargo:
-	cargo clean --profile test
-	cargo clean --release
-
-clean-so:
-	find . -wholename './py-mcdmrs/**/*.so' -exec rm -f {} +
-
-clean: clean-coverage clean-perf
-
-build-coverage: clean
-	RUSTFLAGS="-C instrument-coverage" cargo test --tests
-
-build-python: clean
-	maturin develop -m py-mcdmrs/Cargo.toml
-
-build-wasm:
-	RUSTFLAGS='-C target-feature=+atomics,+bulk-memory,+mutable-globals' \
-	rustup run nightly-2024-02-22 \
-	wasm-pack build --target web -d www/pkg ./mcdmrs-wasm \
-	-- -Z build-std=panic_abort,std
-
-release-python: clean clean-so
-	maturin develop -m py-mcdmrs/Cargo.toml --release
-
-coverage-python:
-	pytest --cov
-
-format:
-	cargo fmt
-	
-lint:
-	cargo fmt --version
-	cargo fmt --all -- --check
-	cargo clippy --version
-	cargo clippy
-	cargo doc --no-deps
-
-lint-python: lint
-	ruff check . --fix
-	ruff format . --diff
-	pre-commit run --all-files
-
 dBINARIES = $(eval dBINARIES := $$(shell \
 	RUSTFLAGS="-C instrument-coverage" \
 	cargo test --tests --no-run --message-format=json | \
@@ -79,6 +21,43 @@ RUSTC_SYSROOT=$(shell rustc --print sysroot)
 LLVM_PROFDATA=$(shell find $(RUSTC_SYSROOT) -name llvm-profdata)
 LLVM_COV=$(shell find $(RUSTC_SYSROOT) -name llvm-cov)
 PROFRAW=$(shell find -wholename **/default*.profraw)
+
+# -- Rust
+
+install-rust-coverage:
+	cargo install rustfilt
+	rustup component add llvm-tools-preview
+
+clean-coverage:
+	find . -wholename '**/*.profdata' -exec rm -fr {} +
+	find . -wholename '**/*.profraw' -exec rm -fr {} +
+	find . -name '*.lcov' -exec rm -fr {} +
+
+clean-perf:
+	find . -name '*perf.data*' -exec rm -fr {} +
+	find . -name '*flame*.svg' -exec rm -fr {} +
+
+clean-cargo:
+	cargo clean --profile test
+	cargo clean --release
+
+clean-so:
+	find . -wholename './py-mcdmrs/**/*.so' -exec rm -f {} +
+
+clean: clean-coverage clean-perf clean-so
+
+build-coverage: clean
+	RUSTFLAGS="-C instrument-coverage" cargo test --tests
+
+format:
+	cargo fmt
+
+lint:
+	cargo fmt --version
+	cargo fmt --all -- --check
+	cargo clippy --version
+	cargo clippy
+	cargo doc --no-deps
 
 cov-merge:
 	$(LLVM_PROFDATA) merge -sparse -o rust_coverage.profdata $(PROFRAW)
@@ -113,6 +92,34 @@ bench:
 release:
 	cargo build -r
 
+# -- Rust cross-compile
+
+install-cross:
+	cargo install cross
+
 release-windows:
 	cross build --target x86_64-pc-windows-gnu --release
-	
+
+# -- WASM
+
+build-wasm:
+	RUSTFLAGS='-C target-feature=+atomics,+bulk-memory,+mutable-globals' \
+	rustup run nightly-2024-02-22 \
+	wasm-pack build --target web -d www/pkg crates/mcdmrs-wasm \
+	-- -Z build-std=panic_abort,std
+
+# -- Py03
+
+build-python: clean
+	maturin develop -m crates/py-mcdmrs/Cargo.toml
+
+release-python: clean clean-so
+	maturin develop -m crates/py-mcdmrs/Cargo.toml --release
+
+coverage-python:
+	pytest --cov crates/py-mcdmrs/tests
+
+lint-python: lint
+	ruff check .
+	ruff format . --diff
+	pre-commit run --all-files
