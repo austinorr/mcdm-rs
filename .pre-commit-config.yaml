@@ -22,7 +22,7 @@ repos:
           - --py3-plus
           - --keep-runtime-typing
   - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: v0.1.4
+    rev: v0.3.2
     hooks:
       - id: ruff
         args:
