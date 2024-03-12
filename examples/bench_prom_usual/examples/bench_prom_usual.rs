@@ -29,6 +29,8 @@ fn bench(mut p: Prom, iters: usize) {
         let now: Instant = Instant::now();
         _ = p.re_weight(weight.view());
         rw_timings.push(now.elapsed().as_secs_f64());
+
+        p.mc_flow = None;
     }
 
     let s: f64 = timings.iter().sum::<f64>() * 1000.0;
