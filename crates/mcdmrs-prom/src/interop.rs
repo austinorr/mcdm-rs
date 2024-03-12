@@ -43,9 +43,9 @@ pub mod polars {
             criteria_type: float_array
                 .index_axis(Axis(1), float_df.get_column_index("criteria_type").unwrap())
                 .to_owned(),
-            pref_function: Array1::<String>::from_vec(
-                _pref_func_to_vec_string(df.column("pref_function")?).unwrap(),
-            ),
+            pref_function: Array1::<String>::from_vec(_pref_func_to_vec_string(
+                df.column("pref_function")?,
+            )?),
             q: float_array
                 .index_axis(Axis(1), float_df.get_column_index("q").unwrap())
                 .to_owned(),
@@ -57,12 +57,11 @@ pub mod polars {
 
     pub fn prom_from_polars(data_df: &DataFrame, criteria_df: &DataFrame) -> Result<Prom> {
         let matrix_t = data_df
-            .select(_series_to_vec_string(criteria_df.column("name")?).unwrap())?
-            .to_ndarray::<Float32Type>(IndexOrder::C)
-            .expect("unable to convert matrix.")
+            .select(_series_to_vec_string(criteria_df.column("name")?)?)?
+            .to_ndarray::<Float32Type>(IndexOrder::C)?
             .t()
             .to_owned();
-        let criteria = df_to_criteria(criteria_df).expect("unable to load criteria");
+        let criteria = df_to_criteria(criteria_df)?;
 
         Ok(Prom {
             matrix_t,

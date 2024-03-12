@@ -39,5 +39,5 @@ fn prom_from_file() -> Result<()> {
 }
 
 fn main() {
-    prom_from_file().unwrap()
+    _ = prom_from_file();
 }
