@@ -1,35 +1,5 @@
+use super::cmp::{gt, le, lt};
 use super::types::{FPref, Fl};
-
-const REL_TOL: Fl = 1e-7;
-
-fn lhs(a: &Fl, b: &Fl) -> Fl {
-    (a - b).abs()
-}
-
-fn rhs(a: &Fl, b: &Fl) -> Fl {
-    REL_TOL * a.abs().max(b.abs())
-}
-
-fn f_isclose(a: &Fl, b: &Fl) -> bool {
-    lhs(a, b) <= rhs(a, b)
-}
-
-fn gt(a: &Fl, b: &Fl) -> bool {
-    !f_isclose(a, b) && (a > b)
-}
-
-fn lt(a: &Fl, b: &Fl) -> bool {
-    !f_isclose(a, b) && (a < b)
-}
-
-#[allow(dead_code)]
-fn ge(a: &Fl, b: &Fl) -> bool {
-    f_isclose(a, b) || (a > b)
-}
-
-fn le(a: &Fl, b: &Fl) -> bool {
-    f_isclose(a, b) || (a < b)
-}
 
 pub fn usual(d: &Fl, _q: &Fl, _p: &Fl) -> Fl {
     if gt(d, &0.0) {
@@ -91,17 +61,6 @@ pub fn _get_pref_function(name: &str) -> FPref {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn test_isclose() {
-        assert!(f_isclose(&(0.3 - 0.1), &0.2));
-        assert!(gt(&(0.3 + (10.0 * REL_TOL) - 0.1), &0.2));
-        assert!(lt(&(0.3 - (10.0 * REL_TOL) - 0.1), &0.2));
-        assert!(ge(&(0.3 + (10.0 * REL_TOL) - 0.1), &0.2));
-        assert!(ge(&(0.3 - 0.1), &0.2));
-        assert!(le(&(0.3 - (10.0 * REL_TOL) - 0.1), &0.2));
-        assert!(le(&(0.3 - 0.1), &0.2));
-    }
 
     #[test]
     fn test_func_lookup() {
