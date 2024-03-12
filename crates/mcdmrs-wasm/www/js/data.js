@@ -20,7 +20,7 @@ export function transpose(matrix) {
   return matrix[0].map((col, c) => matrix.map((row, r) => matrix[r][c]));
 }
 
-const data_long_csv = `,cost,treated_area,site_slope,site_footprint,tss_conc_pct_reduction,site_equity_factor,risk_factor
+const data_long_csv = `,cost,treated_area,site_slope,site_footprint,TSS_conc_pct_reduction,site_equity_factor,risk_factor
 0,274687.28,186.9,0.059,139060.258,30.706,0.694,2
 1,666485.73,166.6,0.016,100142.038,13.154,-0.011,2
 2,517755.88,88.2,0.028,210074.879,15.867,-0.609,1
