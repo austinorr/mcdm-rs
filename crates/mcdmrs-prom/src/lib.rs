@@ -11,5 +11,6 @@ mod promethee;
 pub use promethee::{Criteria, Prom};
 pub mod types;
 pub use types::{Fl, Result};
+mod cmp;
 pub mod unicriterion_flow;
 pub mod utils;
