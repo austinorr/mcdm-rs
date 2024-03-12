@@ -41,10 +41,7 @@ clean-cargo:
 	cargo clean --profile test
 	cargo clean --release
 
-clean-so:
-	find . -wholename '**/py-mcdmrs/**/*.so' -exec rm -f {} +
-
-clean: clean-coverage clean-perf clean-so
+clean: clean-coverage clean-perf clean-py
 
 build-coverage: clean
 	RUSTFLAGS="-C instrument-coverage" cargo test --tests
@@ -109,6 +106,21 @@ build-wasm:
 	-- -Z build-std=panic_abort,std
 
 # -- Py03
+
+clean-pytest: ## remove test and coverage artifacts
+	rm -fr .coverage*
+	rm -fr .pytest_cache
+
+clean-pyc: ## remove Python file artifacts
+	find . -wholename '**/__pycache__/*.pyc' -exec rm -f {} +
+	find . -wholename '**/__pycache__/*.pyo' -exec rm -f {} +
+	find . -wholename '**/.pytest_cache/*' -exec rm -fr {} +
+	find . -name '*~' -exec rm -f {} +
+
+clean-so:
+	find . -wholename '**/py-mcdmrs/**/*.so' -exec rm -f {} +
+
+clean-py: clean-pytest clean-pyc clean-so
 
 build-python: clean
 	maturin develop -m crates/py-mcdmrs/Cargo.toml
