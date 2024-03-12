@@ -91,8 +91,8 @@ mod tests {
         .mapv(|x| x as Fl);
 
         let adj = outranking_adjacency_matrix(plus.view(), minus.view()).unwrap();
-        let flat: Array1<Fl> = Array1::from_iter(adj.iter()).mapv(|el| el.clone());
-        let exp: Array1<Fl> = Array1::from_iter(exp.iter()).mapv(|el| el.clone());
+        let flat: Array1<Fl> = Array1::from_iter(adj.iter()).mapv(|el| *el);
+        let exp: Array1<Fl> = Array1::from_iter(exp.iter()).mapv(|el| *el);
 
         assert_eq!(flat, exp);
     }
