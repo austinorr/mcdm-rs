@@ -21,9 +21,11 @@ pub fn _unicriterion_flow(
             for v2 in array.iter() {
                 let diff = v1 - v2;
                 let ndiff = -diff;
-                *pl += func(&diff, q, p) / n;
-                *mi += func(&ndiff, q, p) / n;
+                *pl += func(&diff, q, p);
+                *mi += func(&ndiff, q, p);
             }
+            *pl /= n;
+            *mi /= n;
         });
 }
 
@@ -48,11 +50,21 @@ macro_rules! build_unicriterion_flow_fn {
                 .and(plus)
                 .and(minus)
                 .par_for_each(|&v1, pl, mi| {
-                    for v2 in array.iter() {
-                        let diff = v1 - v2;
-                        let ndiff = -diff;
-                        *pl += $alg(&diff, q, p) / n;
-                        *mi += $alg(&ndiff, q, p) / n;
+                    if !v1.is_nan() {
+                        for v2 in array.iter() {
+                            if v2.is_nan() {
+                                continue;
+                            }
+                            // If v1 or v2 is missing ie f32::NAN, the alg will return
+                            // zero i.e., 'indifferent'. Of course this is unnecessary
+                            // and we can skip all this work if either is nan.
+                            let diff = v1 - v2;
+                            let ndiff = -diff;
+                            *pl += $alg(&diff, q, p);
+                            *mi += $alg(&ndiff, q, p);
+                        }
+                        *pl /= n;
+                        *mi /= n;
                     }
                 });
         }
@@ -99,6 +111,7 @@ mod test {
         _unicriterion_usual1: ((vec![0.8, 0.2, 0.5], "usual", 0.0, 0.0), (vec![1., 0., 0.5], vec![0., 1., 0.5])),
         _unicriterion_usual2: ((vec![1.,1.,1.], "usual", 0.0, 0.0), (vec![0.,0.,0.],vec![0.,0.,0.])),
         _unicriterion_usual3: ((vec![0.,0.,0.], "usual", 0.0, 0.0), (vec![0.,0.,0.], vec![0.,0.,0.])),
+        _unicriterion_usual_nan: ((vec![0.8, 0.2, Fl::NAN], "usual", 0.0, 0.0), (vec![0.5, 0., 0.], vec![0., 0.5, 0.])),
     }
 
     #[test]

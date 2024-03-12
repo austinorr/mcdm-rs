@@ -48,30 +48,30 @@ pub fn ushape(d: &Fl, q: &Fl, _p: &Fl) -> Fl {
 }
 
 pub fn vshape(d: &Fl, _q: &Fl, p: &Fl) -> Fl {
-    if gt(d, &0.0) && le(d, p) {
-        d / p
-    } else if gt(d, p) {
+    if gt(d, p) {
         1.0
+    } else if gt(d, &0.0) && le(d, p) {
+        d / p
     } else {
         0.0
     }
 }
 
 pub fn vshape2(d: &Fl, q: &Fl, p: &Fl) -> Fl {
-    if lt(q, d) && le(d, p) {
-        (d - q) / (p - q)
-    } else if gt(d, p) {
+    if gt(d, p) {
         1.0
+    } else if lt(q, d) && le(d, p) {
+        (d - q) / (p - q)
     } else {
         0.0
     }
 }
 
 pub fn level(d: &Fl, q: &Fl, p: &Fl) -> Fl {
-    if lt(q, d) && le(d, p) {
-        0.5
-    } else if gt(d, p) {
+    if gt(d, p) {
         1.0
+    } else if lt(q, d) && le(d, p) {
+        0.5
     } else {
         0.0
     }
