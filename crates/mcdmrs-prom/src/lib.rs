@@ -12,5 +12,7 @@ pub use promethee::{Criteria, Prom};
 pub mod types;
 pub use types::{Fl, Result};
 mod cmp;
+mod outranking;
+pub use outranking::outranking_adjacency_matrix;
 pub mod unicriterion_flow;
 pub mod utils;
