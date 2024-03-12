@@ -604,4 +604,48 @@ mod test {
             abs_tol = 1e-3
         ))
     }
+
+    #[test]
+    fn test_complex_prom_all_with_nan() {
+        use is_close::all_close;
+        let (mut matrix, weights, criteria_types, prefs, q, p) = get_prom_inputs();
+
+        matrix[[5, 5]] = Fl::NAN;
+
+        let exp_promii: Array1<Fl> = array![
+            0.066631496,
+            -0.16177753,
+            -0.06239018,
+            -0.4264634, // <- min
+            0.031962574,
+            0.16509122,
+            0.49009144, // <- max
+            -0.05938098,
+            0.15276033,
+            -0.12216282,
+            -0.20474061,
+            -0.04159701,
+            0.05985737,
+            -0.064052194,
+            -0.17953521,
+            -0.22568426,
+            0.042961508,
+            -0.043481022,
+            0.15808347,
+            0.42382568,
+        ];
+
+        let c = Criteria::new(weights, criteria_types, prefs, q, p).unwrap();
+        let mut p = Prom::new(matrix, c).unwrap();
+
+        let _ = p.compute_prom_ii();
+        let score = p.prom_ii.clone().unwrap().score;
+        println!("expected: {:#?} got: {:#?}", exp_promii, score);
+        assert!(all_close!(
+            exp_promii,
+            score,
+            rel_tol = 1e-6,
+            abs_tol = 1e-3
+        ))
+    }
 }
