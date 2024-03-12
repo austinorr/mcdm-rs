@@ -7,7 +7,7 @@ const c=`,name,weight,criteria_type,pref_function,q,p
 5,site_inequity_factor,2,-1,usual,0.0,0
 6,risk_factor,1,-1,usual,0.0,0`;function o(t,s=",",e=!1){return t.slice(e?t.indexOf(`
 `)+1:0).split(`
-`).map(a=>a.split(s))}const n=o(c,",",!1);function _(t){return t[0].map((s,e)=>t.map((a,r)=>t[r][e]))}const i=`,cost,treated_area,site_slope,site_footprint,tss_conc_pct_reduction,site_equity_factor,risk_factor
+`).map(a=>a.split(s))}const n=o(c,",",!1);function _(t){return t[0].map((s,e)=>t.map((a,r)=>t[r][e]))}const i=`,cost,treated_area,site_slope,site_footprint,TSS_conc_pct_reduction,site_equity_factor,risk_factor
 0,274687.28,186.9,0.059,139060.258,30.706,0.694,2
 1,666485.73,166.6,0.016,100142.038,13.154,-0.011,2
 2,517755.88,88.2,0.028,210074.879,15.867,-0.609,1
